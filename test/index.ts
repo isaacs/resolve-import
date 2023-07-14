@@ -67,7 +67,10 @@ t.test('builtin returns string', async t => {
 })
 
 t.test('absolute url returns file url of it', async t => {
-  const p = resolve('/a/b/c.js')
+  const d = t.testdir({
+    'c.js': '',
+  })
+  const p = resolve(d, 'c.js')
   const u = pathToFileURL(p)
   const f = String(u)
   t.strictSame(await resolveImport(p), u)
@@ -76,17 +79,31 @@ t.test('absolute url returns file url of it', async t => {
   t.equal(await resolveImport(u, '/x/y/z.js'), u)
   t.strictSame(await resolveImport(f), u)
   t.strictSame(await resolveImport(f, '/x/y/z.js'), u)
+
+  t.rejects(resolveImport(resolve(d, 'x.js')))
+  t.rejects(resolveImport(pathToFileURL(resolve(d, 'x.js'))))
+  t.rejects(resolveImport(String(pathToFileURL(resolve(d, 'x.js')))))
 })
 
 t.test('relative url resolves', async t => {
+  const d = t.testdir({
+    x: {
+      a: {
+        'b.js': '',
+      },
+      y: {
+        'z.js': '',
+      },
+    },
+  })
   const rel = '../a/b.js'
   await t.rejects(resolveImport(rel), {
     message: 'relative import without parentURL',
     url: '../a/b.js',
     parentURL: undefined,
   })
-  const from = pathToFileURL(resolve('/x/y/z.js'))
-  const expect = pathToFileURL(resolve('/x/a/b.js'))
+  const from = pathToFileURL(resolve(d, 'x/y/z.js'))
+  const expect = pathToFileURL(resolve(d, 'x/a/b.js'))
   t.strictSame(await resolveImport(rel, from), expect)
 })
 
@@ -148,4 +165,34 @@ t.test('named package with exports internal import', async t => {
   t.rejects(resolveImport(ir + '/nope', p))
   t.rejects(resolveImport(ir + '/missing', p))
   t.rejects(resolveImport(ir + '/failing-starmatch', p))
+})
+
+t.test('internal imports relative to package.json', async t => {
+  const d = t.testdir({
+    'package.json': JSON.stringify({
+      name: '@i/p',
+      imports: {
+        '#vnd': './source/vendor/x.js',
+        '#missing': './source/vendor/missing.js',
+      },
+      exports: {
+        './vnd': './source/vendor/x.js',
+        './missing': './source/vendor/missingjs',
+      },
+    }),
+    source: {
+      vendor: {
+        'x.js': '',
+      },
+    },
+    src: {
+      'mine.js': '',
+    },
+  })
+  const expect = pathToFileURL(resolve(d, 'source/vendor/x.js'))
+  const from = resolve(d, 'src/mine.js')
+  t.strictSame(await resolveImport('#vnd', from), expect)
+  t.strictSame(await resolveImport('@i/p/vnd', from), expect)
+  t.rejects(resolveImport('#missing', from))
+  t.rejects(resolveImport('@i/p/missing', from))
 })

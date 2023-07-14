@@ -18,10 +18,20 @@ import { isRelativeRequire } from './is-relative-require.js'
 // returns file:// url object for anything other than builtins
 export const resolveImport = async (
   url: string | URL,
-  parentURL?: string | URL
+  parentURL?: string | URL,
+  originalParent: string | URL | undefined = parentURL
 ): Promise<URL | string> => {
-  if (typeof url === 'object') return url
+  if (typeof url === 'object') {
+    if (!(await fileExists(url))) {
+      throw moduleNotFound(String(url), String(parentURL))
+    }
+    return url
+  }
   if (url.startsWith('file://')) {
+    const u = new URL(url)
+    if (!(await fileExists(u))) {
+      throw moduleNotFound(url, String(parentURL))
+    }
     return new URL(url)
   }
   if (parentURL && typeof parentURL === 'string') {
@@ -36,10 +46,18 @@ export const resolveImport = async (
         parentURL,
       })
     }
+    const u = new URL(url, parentURL)
+    if (!(await fileExists(u))) {
+      throw moduleNotFound(url, String(parentURL))
+    }
+
     return new URL(url, parentURL)
   }
 
   if (isAbsolute(url)) {
+    if (!(await fileExists(url))) {
+      throw moduleNotFound(url, String(parentURL))
+    }
     return pathToFileURL(url)
   }
 
@@ -52,15 +70,16 @@ export const resolveImport = async (
   parentURL = parentURL || resolve('x')
   const parentPath: string =
     typeof parentURL === 'object' ? fileURLToPath(parentURL) : parentURL
+  originalParent = String(originalParent || parentURL)
 
   if (url) {
-    return resolvePackageImport(url, parentPath)
+    return resolvePackageImport(url, parentPath, originalParent)
   } else {
-    return resolveDependencyExports(url, parentPath)
+    return resolveDependencyExports(url, parentPath, originalParent)
   }
 }
 
-const fileExists = async (f: string): Promise<boolean> =>
+const fileExists = async (f: string | URL): Promise<boolean> =>
   stat(f).then(
     st => st.isFile(),
     () => false
@@ -125,7 +144,8 @@ const readPkg = async (f: string): Promise<Pkg | null> => {
 
 const resolvePackageImport = async (
   url: string,
-  parentPath: string
+  parentPath: string,
+  originalParent: string
 ): Promise<URL | string> => {
   const parts = url.match(/^(@[^\/]+\/[^\/]+|[^\/]+)(?:\/(.*))?$/)
   // impossible
@@ -144,10 +164,10 @@ const resolvePackageImport = async (
       const [, pkgName, sub] = parts
       if (pkgName === pkg.name) {
         // ok, see if sub is a valid export then
-        const subPath = resolveExport(sub, pkg.exports, pj, parentPath)
+        const subPath = resolveExport(sub, pkg.exports, pj, originalParent)
         const resolved = resolve(dir, subPath)
         if (await fileExists(resolved)) return pathToFileURL(resolved)
-        else throw moduleNotFound(resolved, parentPath)
+        else throw moduleNotFound(resolved, originalParent)
       }
     }
 
@@ -156,43 +176,44 @@ const resolvePackageImport = async (
       if (exact !== undefined) {
         const res = resolveConditionalValue(exact)
         if (!res) {
-          throw packageImportNotDefined(url, pj, parentPath)
+          throw packageImportNotDefined(url, pj, originalParent)
         }
         // kind of weird behavior, but it's what node does
         if (res.startsWith('#')) {
-          return resolveDependencyExports(null, parentPath)
+          return resolveDependencyExports(null, parentPath, originalParent)
         }
-        return resolveImport(res, parentPath)
+        return resolveImport(res, pj, originalParent)
       }
 
       const sm = starMatch(url, pkg.imports)
       if (!sm) {
-        throw packageImportNotDefined(url, pj, parentPath)
+        throw packageImportNotDefined(url, pj, originalParent)
       }
       const [key, mid] = sm
       const match = pkg.imports[key]
       const res = resolveConditionalValue(match)
       if (!res) {
-        throw packageImportNotDefined(url, pj, parentPath)
+        throw packageImportNotDefined(url, pj, originalParent)
       }
       if (res.startsWith('#')) {
-        return resolveDependencyExports(null, parentPath)
+        return resolveDependencyExports(null, parentPath, originalParent)
       }
       const expand = res.replace(/\*/g, mid)
 
       // start over with the resolved import
-      return resolveImport(expand, parentPath)
+      return resolveImport(expand, pj, originalParent)
     }
 
-    return resolveDependencyExports(url, parentPath)
+    return resolveDependencyExports(url, parentPath, originalParent)
   }
 
-  return resolveDependencyExports(url, parentPath)
+  return resolveDependencyExports(url, parentPath, originalParent)
 }
 
 const resolveDependencyExports = async (
   url: string | null,
-  parentPath: string
+  parentPath: string,
+  originalParent: string
 ): Promise<URL> => {
   const parts = url?.match(/^(@[^\/]+\/[^\/]+|[^\/]+)(?:\/(.*))?$/)
   const [, pkgName, sub] = url === null ? [, null, ''] : parts || ['', '', '']
@@ -213,37 +234,37 @@ const resolveDependencyExports = async (
       if (!subpath) {
         // try index.js, otherwise fail
         if (await fileExists(indexjs)) return pathToFileURL(indexjs)
-        else throw packageNotFound(ppath, parentPath)
+        else throw packageNotFound(ppath, originalParent)
       } else {
         if (await fileExists(subpath)) {
           return pathToFileURL(subpath)
-        } else throw moduleNotFound(subpath, parentPath)
+        } else throw moduleNotFound(subpath, originalParent)
       }
     } else {
       // ok, have a package, look up the export if present.
       // otherwise, use main, otherwise index.js
       if (pkg.exports) {
-        const subPath = resolveExport(sub, pkg.exports, pj, parentPath)
+        const subPath = resolveExport(sub, pkg.exports, pj, originalParent)
         const resolved = resolve(ppath, subPath)
         if (await fileExists(resolved)) return pathToFileURL(resolved)
-        else throw moduleNotFound(resolved, parentPath)
+        else throw moduleNotFound(resolved, originalParent)
       } else if (subpath) {
         if (await fileExists(subpath)) return pathToFileURL(subpath)
-        else throw moduleNotFound(subpath, parentPath)
+        else throw moduleNotFound(subpath, originalParent)
       } else if (pkg.main) {
         // fall back to index.js if main is missing
         const rmain = resolve(ppath, pkg.main)
         if (await fileExists(rmain)) return pathToFileURL(rmain)
         else if (await fileExists(indexjs)) return pathToFileURL(indexjs)
-        else throw packageNotFound(ppath, parentPath)
+        else throw packageNotFound(ppath, originalParent)
       } else if (await fileExists(indexjs)) {
         return pathToFileURL(indexjs)
       } else {
-        throw packageNotFound(ppath, parentPath)
+        throw packageNotFound(ppath, originalParent)
       }
     }
   }
-  throw packageNotFound(pkgName, parentPath)
+  throw packageNotFound(pkgName, originalParent)
 }
 
 // this is the top-level exports tester.
