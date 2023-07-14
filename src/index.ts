@@ -9,7 +9,7 @@
 // Hence this re-implementation.
 
 import { readFile, stat } from 'fs/promises'
-import { dirname, isAbsolute, resolve } from 'path'
+import { dirname, isAbsolute, resolve, sep } from 'path'
 import { fileURLToPath, pathToFileURL } from 'url'
 import { walkUp } from 'walk-up-path'
 import { builtinSet } from './builtin-set.js'
@@ -119,7 +119,7 @@ const resolveDepImport = async (
   // starting from the dirname, try to find the nearest node_modules
   for (const dir of walkUp(dirname(parentPath))) {
     const nm = resolve(dir, 'node_modules')
-    const ppath = resolve(nm, pkgName) + '/'
+    const ppath = resolve(nm, pkgName) + sep
     if (!(await dirExists(ppath))) continue
     const indexjs = resolve(ppath, 'index.js')
     const subpath = sub ? resolve(ppath, sub) : false

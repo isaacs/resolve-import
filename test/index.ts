@@ -45,9 +45,11 @@ t.test('basic run-through of all dep cases', async t => {
 })
 
 t.test('missing package fails', async t => {
-  await t.rejects(resolveImport('this package does not exist', '/some/path'), {
+  const p = resolve('/some/path')
+  const n = 'this package does not exist'
+  await t.rejects(resolveImport(n, p), {
     code: 'ERR_MODULE_NOT_FOUND',
-    message: `Cannot find package 'this package does not exist' imported from /some/path`,
+    message: `Cannot find package '${n}' imported from ${p}`,
   })
 })
 
