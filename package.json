@@ -1,0 +1,102 @@
+{
+  "name": "resolve-import",
+  "version": "0.0.0-0",
+  "description": "Look up the file that an `import()` statement will resolve to, for use in node esm loaders",
+  "author": "Isaac Z. Schlueter <i@izs.me> (https://blog.izs.me)",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/mjs/index.js",
+  "exports": {
+    "./package.json": {
+      "import": "./package.json",
+      "require": "./package.json"
+    },
+    ".": {
+      "import": {
+        "types": "./dist/mjs/index.d.ts",
+        "default": "./dist/mjs/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    },
+    "./is-relative-require": {
+      "import": {
+        "types": "./dist/mjs/is-relative-require.d.ts",
+        "default": "./dist/mjs/is-relative-require.js"
+      },
+      "require": {
+        "types": "./dist/cjs/is-relative-require.d.ts",
+        "default": "./dist/cjs/is-relative-require.js"
+      }
+    },
+    "./builtin-set": {
+      "import": {
+        "types": "./dist/mjs/builtin-set.d.ts",
+        "default": "./dist/mjs/builtin-set.js"
+      },
+      "require": {
+        "types": "./dist/cjs/builtin-set.d.ts",
+        "default": "./dist/cjs/builtin-set.js"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "BlueOak-1.0.0",
+  "scripts": {
+    "preversion": "npm test",
+    "postversion": "npm publish",
+    "prepublishOnly": "git push origin --follow-tags",
+    "prepare": "tsc -p tsconfig.json && tsc -p tsconfig-esm.json && bash ./scripts/fixup.sh",
+    "pretest": "npm run prepare",
+    "presnap": "npm run prepare",
+    "test": "c8 tap",
+    "snap": "c8 tap",
+    "format": "prettier --write . --loglevel warn",
+    "benchmark": "node benchmark/index.js",
+    "typedoc": "typedoc --tsconfig tsconfig-esm.json ./src/*.ts"
+  },
+  "prettier": {
+    "semi": false,
+    "printWidth": 80,
+    "tabWidth": 2,
+    "useTabs": false,
+    "singleQuote": true,
+    "jsxSingleQuote": false,
+    "bracketSameLine": true,
+    "arrowParens": "avoid",
+    "endOfLine": "lf"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "dependencies": {
+    "sync-content": "^1.0.2",
+    "walk-up-path": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^18.15.11",
+    "@types/tap": "^15.0.8",
+    "c8": "^7.12.0",
+    "mkdirp": "1",
+    "prettier": "^2.8.2",
+    "tap": "^16.3.7",
+    "ts-node": "^10.9.1",
+    "typedoc": "^0.24.8",
+    "typescript": "^5.1.6"
+  },
+  "tap": {
+    "coverage": false,
+    "node-arg": [
+      "--no-warnings",
+      "--loader",
+      "ts-node/esm"
+    ],
+    "ts": false
+  },
+  "funding": {
+    "url": "https://github.com/sponsors/isaacs"
+  }
+}
