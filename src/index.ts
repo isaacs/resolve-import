@@ -178,6 +178,7 @@ const resolveExport = (
   }
   const e = exp[s]
   if (typeof e === 'string') return e
+  if (!e && typeof exp.default === 'string' && s === '.') return exp.default
   if (!e) throw subpathNotExported(s, pj, from)
   const d = e.import || e.default
   if (typeof d === 'string') return d
