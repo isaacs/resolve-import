@@ -1,0 +1,74 @@
+{
+  "name": "@isaacs/resolve-import-test-fixture",
+  "exports": {
+    "./nope": null,
+    "./x": "./x.js",
+    ".": "./t.js",
+    "./missing": "./this-file-does-not-exist.js",
+    "./passing-*": "./x.js",
+    "./failing-*": null
+  },
+  "imports": {
+    "#x": "./x.js",
+    "#foo*bar": "./multi-x-star-x.js",
+    "#star*replace": "./star-*-*.js",
+    "#multi-*-star": "./multi-*-star-*.js",
+    "#blorg": "tap",
+    "#nu*": "minipass",
+    "#null": null,
+    "#invalid": "#blorg",
+    "#invalid-*-expand": "#nope-not-allowed",
+    "#.": [
+      {
+        "import": "glob"
+      },
+      {
+        "node": {
+          "default": "glob"
+        }
+      },
+      {
+        "require": "minipass"
+      }
+    ],
+    "#failing-conditional": { "require": "./x.js" },
+    "#failing-*": { "require": "./x.js" },
+    "#passing-*": { "import": "./x.js" },
+    "#internal-empty": "empty",
+    "#internal-empty-pj-no-main-no-index": "empty-pj-no-main-no-index",
+    "#internal-index-and-pj": "index-and-pj",
+    "#internal-index-and-pj-main": "index-and-pj-main",
+    "#internal-index-and-pj-main-missing": "index-and-pj-main-missing",
+    "#internal-index-and-pj-main-missing-type-module": "index-and-pj-main-missing-type-module",
+    "#internal-index-and-pj-main-type-module": "index-and-pj-main-type-module",
+    "#internal-index-and-pj-module": "index-and-pj-module",
+    "#internal-index-and-pj-type-module": "index-and-pj-type-module",
+    "#internal-index-no-pj": "index-no-pj",
+    "#internal-no-index-and-pj-main-missing-type-module": "no-index-and-pj-main-missing-type-module",
+    "#internal-pj-exports-array": "pj-exports-array",
+    "#internal-pj-exports-array-multimatch": "pj-exports-array-multimatch",
+    "#internal-pj-exports-array-nested": "pj-exports-array-nested",
+    "#internal-pj-exports-array-nested-no-sub-match": "pj-exports-array-nested-no-sub-match",
+    "#internal-pj-exports-array-no-main-match": "pj-exports-array-no-main-match",
+    "#internal-pj-exports-bare-string": "pj-exports-bare-string",
+    "#internal-pj-exports-bare-string-type-module": "pj-exports-bare-string-type-module",
+    "#internal-pj-exports-default-string": "pj-exports-default-string",
+    "#internal-pj-exports-no-default": "pj-exports-no-default",
+    "#internal-pj-exports-obj": "pj-exports-obj",
+    "#internal-pj-exports-obj-default": "pj-exports-obj-default",
+    "#internal-pj-exports-obj-default-type-module": "pj-exports-obj-default-type-module",
+    "#internal-pj-exports-obj-import-then-node": "pj-exports-obj-import-then-node",
+    "#internal-pj-exports-obj-nested": "pj-exports-obj-nested",
+    "#internal-pj-exports-obj-node": "pj-exports-obj-node",
+    "#internal-pj-exports-obj-node-then-import": "pj-exports-obj-node-then-import",
+    "#internal-pj-exports-obj-require": "pj-exports-obj-require",
+    "#internal-pj-exports-obj-type-module": "pj-exports-obj-type-module",
+    "#internal-pj-exports-obj-type-module-sub-missing": "pj-exports-obj-type-module-sub-missing",
+    "#internal-pj-exports-star": "pj-exports-star",
+    "#internal-pj-exports-string": "pj-exports-string",
+    "#internal-pj-exports-string-array": "pj-exports-string-array",
+    "#internal-pj-exports-string-type-module": "pj-exports-string-type-module",
+    "#internal-pj-exports-top-array-no-main-match": "pj-exports-top-array-no-main-match",
+    "#internal-pj-exports-top-obj-no-main-match": "pj-exports-top-obj-no-main-match"
+  }
+}

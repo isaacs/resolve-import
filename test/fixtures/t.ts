@@ -11,15 +11,13 @@ export const testAll = async (which?: string) => {
     types.map(async pkg => {
       return [
         pkg,
-        await import(pkg)
-          .then(({ whoami }) => whoami)
-          .catch(e => [e.code, e.message]),
+        await import(pkg).then(({ whoami }) => whoami).catch(e => niceErr(e)),
         await import(`${pkg}/sub.js`)
           .then(({ whoami }) => whoami)
-          .catch(e => [e.code, e.message]),
+          .catch(e => niceErr(e)),
         await import(`${pkg}/missing.js`)
           .then(({ whoami }) => whoami)
-          .catch(e => [e.code, e.message]),
+          .catch(e => niceErr(e)),
       ]
     })
   )
@@ -29,6 +27,11 @@ export const testAll = async (which?: string) => {
     })
   )
 }
+
+const niceErr = (e: NodeJS.ErrnoException) => [
+  e.code,
+  e.message.replace(/\nDid you mean.*/, ''),
+]
 
 const tofurl = (s: string | [string, string]) =>
   typeof s !== 'string'

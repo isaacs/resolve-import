@@ -10,15 +10,13 @@ const testAll = async (which) => {
     const res = await Promise.all(types.map(async (pkg) => {
         return [
             pkg,
-            await import(pkg)
-                .then(({ whoami }) => whoami)
-                .catch(e => [e.code, e.message]),
+            await import(pkg).then(({ whoami }) => whoami).catch(e => niceErr(e)),
             await import(`${pkg}/sub.js`)
                 .then(({ whoami }) => whoami)
-                .catch(e => [e.code, e.message]),
+                .catch(e => niceErr(e)),
             await import(`${pkg}/missing.js`)
                 .then(({ whoami }) => whoami)
-                .catch(e => [e.code, e.message]),
+                .catch(e => niceErr(e)),
         ];
     }));
     return Object.fromEntries(res.map(([p, i, s, m]) => {
@@ -26,6 +24,10 @@ const testAll = async (which) => {
     }));
 };
 exports.testAll = testAll;
+const niceErr = (e) => [
+    e.code,
+    e.message.replace(/\nDid you mean.*/, ''),
+];
 const tofurl = (s) => typeof s !== 'string'
     ? s
     : s.startsWith('file://')

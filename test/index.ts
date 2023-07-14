@@ -39,6 +39,13 @@ t.test('basic run-through of all dep cases', async t => {
           return [er.code, er.message]
         })
       t.strictSame([root, sub, missing], expect[c])
+      const internal = await resolveImport(`#internal-${c}`, p)
+        .then(r => String(r))
+        .catch(e => {
+          const er = e as NodeJS.ErrnoException
+          return [er.code, er.message]
+        })
+      t.strictSame(internal, root)
       t.end()
     })
   }
@@ -89,4 +96,56 @@ t.test('resolve a dep from right here', async t => {
   t.strictSame(await resolveImport(dep), expect)
   const p = pathToFileURL(__filename)
   t.strictSame(await resolveImport(dep, p), expect)
+})
+
+t.test('more custom internal imports', async t => {
+  const p = require.resolve('./fixtures/t.js')
+  const cases: [string, string | null][] = [
+    ['#x', './x.js'],
+    ['#not-found', null],
+    ['#foo-xyz-bar', './multi-x-star-x.js'],
+    ['#starxreplace', './star-x-x.js'],
+    ['#starreplace', null],
+    ['#multi-x-star', './multi-x-star-x.js'],
+    ['#blorg', 'tap'],
+    ['#nuevo', 'minipass'],
+    ['#nul', 'minipass'],
+    ['#null', null],
+    ['#invalid', null],
+    ['#invalid-star-expand', null],
+    ['#.', 'glob'],
+    ['#failing-conditional', null],
+    ['#failing-starmatch', null],
+    ['#passing-starmatch', './x.js'],
+    ['', null],
+  ]
+  t.plan(cases.length)
+  for (const [i, expect] of cases) {
+    t.test(`${i} => ${expect}`, async t => {
+      if (expect === null) {
+        const e = await resolveImport(i, p).catch(e => e)
+        t.match(e, Error)
+        t.matchSnapshot(e.code)
+      } else {
+        t.strictSame(await resolveImport(i, p), await resolveImport(expect, p))
+      }
+    })
+  }
+})
+
+t.test('named package with exports internal import', async t => {
+  const p = require.resolve('./fixtures/t.js')
+  const ir = '@isaacs/resolve-import-test-fixture'
+  const x = ir + '/x'
+  const res = await resolveImport(x, p)
+  t.strictSame(res, await resolveImport('./x.js', p))
+
+  const passingStar = ir + '/passing-starmatch'
+  const ps = await resolveImport(passingStar, p)
+  t.strictSame(ps, await resolveImport('./x.js', p))
+
+  t.rejects(resolveImport(ir + '/y', p))
+  t.rejects(resolveImport(ir + '/nope', p))
+  t.rejects(resolveImport(ir + '/missing', p))
+  t.rejects(resolveImport(ir + '/failing-starmatch', p))
 })

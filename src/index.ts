@@ -52,7 +52,12 @@ export const resolveImport = async (
   parentURL = parentURL || resolve('x')
   const parentPath: string =
     typeof parentURL === 'object' ? fileURLToPath(parentURL) : parentURL
-  return resolveDepImport(url, parentPath)
+
+  if (url) {
+    return resolvePackageImport(url, parentPath)
+  } else {
+    return resolveDependencyExports(url, parentPath)
+  }
 }
 
 const fileExists = async (f: string): Promise<boolean> =>
@@ -72,22 +77,33 @@ const readJSON = async (f: string): Promise<any> =>
     .then(d => JSON.parse(d))
     .catch(() => null)
 
-type ExportValueObject = {
-  import?: ExportValue
-  default?: ExportValue
+type ConditionalValueObject = {
+  import?: ConditionalValue
+  node?: ConditionalValue
+  default?: ConditionalValue
 }
-type ExportValue = string | ExportValueObject | ExportValue[]
+type ConditionalValue =
+  | null
+  | string
+  | ConditionalValueObject
+  | ConditionalValue[]
 
 type ExportsSubpaths = {
-  [path: string]: ExportValue
+  [path: string]: ConditionalValue
 }
-type Exports = ExportValue | ExportsSubpaths
+type Exports = Exclude<ConditionalValue, null> | ExportsSubpaths
+
+type Imports = {
+  [path: string]: ConditionalValue
+}
 
 type Pkg = {
+  name?: string
   main?: string
   type?: string
   module?: string
   exports?: Exports
+  imports?: Imports
 }
 
 const isExports = (e: any): e is Exports =>
@@ -96,6 +112,7 @@ const isExports = (e: any): e is Exports =>
 const isPkg = (o: any): o is Pkg =>
   !!o &&
   typeof o === 'object' &&
+  (typeof o.name === 'string' || typeof o.name === 'undefined') &&
   (typeof o.main === 'string' || typeof o.main === 'undefined') &&
   (typeof o.module === 'string' || typeof o.module === 'undefined') &&
   (typeof o.exports === 'undefined' || isExports(o.exports))
@@ -106,10 +123,10 @@ const readPkg = async (f: string): Promise<Pkg | null> => {
   return pj
 }
 
-const resolveDepImport = async (
+const resolvePackageImport = async (
   url: string,
   parentPath: string
-): Promise<URL> => {
+): Promise<URL | string> => {
   const parts = url.match(/^(@[^\/]+\/[^\/]+|[^\/]+)(?:\/(.*))?$/)
   // impossible
   /* c8 ignore start */
@@ -117,11 +134,73 @@ const resolveDepImport = async (
     throw new Error('invalid import() specifier: ' + url)
   }
   /* c8 ignore stop */
-  const [, pkgName, sub] = parts
+
+  for (const dir of walkUp(dirname(parentPath))) {
+    const pj = resolve(dir, 'package.json')
+    const pkg = await readPkg(pj)
+    if (!pkg) continue
+    if (pkg.name && pkg.exports) {
+      // can import from this package name if exports is defined
+      const [, pkgName, sub] = parts
+      if (pkgName === pkg.name) {
+        // ok, see if sub is a valid export then
+        const subPath = resolveExport(sub, pkg.exports, pj, parentPath)
+        const resolved = resolve(dir, subPath)
+        if (await fileExists(resolved)) return pathToFileURL(resolved)
+        else throw moduleNotFound(resolved, parentPath)
+      }
+    }
+
+    if (pkg.imports && url.startsWith('#')) {
+      const exact = pkg.imports[url]
+      if (exact !== undefined) {
+        const res = resolveConditionalValue(exact)
+        if (!res) {
+          throw packageImportNotDefined(url, pj, parentPath)
+        }
+        // kind of weird behavior, but it's what node does
+        if (res.startsWith('#')) {
+          return resolveDependencyExports(null, parentPath)
+        }
+        return resolveImport(res, parentPath)
+      }
+
+      const sm = starMatch(url, pkg.imports)
+      if (!sm) {
+        throw packageImportNotDefined(url, pj, parentPath)
+      }
+      const [key, mid] = sm
+      const match = pkg.imports[key]
+      const res = resolveConditionalValue(match)
+      if (!res) {
+        throw packageImportNotDefined(url, pj, parentPath)
+      }
+      if (res.startsWith('#')) {
+        return resolveDependencyExports(null, parentPath)
+      }
+      const expand = res.replace(/\*/g, mid)
+
+      // start over with the resolved import
+      return resolveImport(expand, parentPath)
+    }
+
+    return resolveDependencyExports(url, parentPath)
+  }
+
+  return resolveDependencyExports(url, parentPath)
+}
+
+const resolveDependencyExports = async (
+  url: string | null,
+  parentPath: string
+): Promise<URL> => {
+  const parts = url?.match(/^(@[^\/]+\/[^\/]+|[^\/]+)(?:\/(.*))?$/)
+  const [, pkgName, sub] = url === null ? [, null, ''] : parts || ['', '', '']
   // starting from the dirname, try to find the nearest node_modules
   for (const dir of walkUp(dirname(parentPath))) {
-    const nm = resolve(dir, 'node_modules')
-    const ppath = resolve(nm, pkgName) + sep
+    const nm = resolve(dir, 'node_modules') + sep
+    const ppath =
+      pkgName === null ? nm : (!pkgName ? nm : resolve(nm, pkgName)) + sep
     if (!(await dirExists(ppath))) continue
     const indexjs = resolve(ppath, 'index.js')
     const subpath = sub ? resolve(ppath, sub) : false
@@ -179,43 +258,81 @@ const resolveExport = (
   const s = sub ? `./${sub}` : '.'
 
   if (typeof exp === 'string' || Array.isArray(exp)) {
-    const res = s === '.' && resolveExportValue(exp)
+    const res = s === '.' && resolveConditionalValue(exp)
     if (!res) throw subpathNotExported(s, pj, from)
     return res
   }
 
   // now it must be a set of named exports or an export value object
-  const e = (exp as ExportsSubpaths)[s]
-  if (!e) {
-    if (s === '.') {
-      // '.' can match against the exports object as a single value
-      const res = resolveExportValue(exp)
-      if (!res) throw subpathNotExported(s, pj, from)
-      return res
-    } else {
-      throw subpathNotExported(s, pj, from)
+  // first try to resolve as a value object, if that's allowed
+  if (s === '.') {
+    const res = resolveConditionalValue(exp)
+    if (res) return res
+  }
+
+  // otherwise the only way to match is with subpaths
+  const es = exp as ExportsSubpaths
+
+  // if we have an exact match, use that
+  const e = es[s]
+  if (e !== undefined) {
+    const res = resolveConditionalValue(e)
+    if (!res) throw subpathNotExported(s, pj, from)
+    return res
+  }
+
+  const sm = starMatch(s, es)
+  if (sm) {
+    const [key, mid] = sm
+    const res = resolveConditionalValue(es[key])
+    if (!res) throw subpathNotExported(s, pj, from)
+    return res.replace(/\*/g, mid)
+  }
+
+  // did not find a match
+  throw subpathNotExported(s, pj, from)
+}
+
+const starMatch = (
+  s: string,
+  obj: { [k: string]: any }
+): [string, string] | null => {
+  // longest pattern matches take priority
+  const patterns = Object.keys(obj)
+    .filter(p => p.length <= s.length)
+    .sort((a, b) => b.length - a.length)
+    .map(p => [p, p.split('*')])
+    .filter(([, p]) => (p as string[]).length === 2) as [
+    string,
+    [string, string]
+  ][]
+
+  for (const [key, [before, after]] of patterns) {
+    if (s.startsWith(before) && s.endsWith(after)) {
+      const mid = s.substring(before.length, s.length - after.length)
+      return [key, mid]
     }
   }
 
-  // now we know we have a subpath that matches. test for the value.
-  const res = resolveExportValue(e)
-  if (!res) throw subpathNotExported(s, pj, from)
-  return res
+  return null
 }
 
 // find the first match for string, import, or default
 // at this point, we know we're on the right subpath already
-const resolveExportValue = (exp: ExportValue): string | null => {
-  if (typeof exp === 'string') return exp
+const resolveConditionalValue = (exp: ConditionalValue): string | null => {
+  if (exp === null || typeof exp === 'string') return exp
   if (Array.isArray(exp)) {
     for (const e of exp) {
-      const r = resolveExportValue(e)
+      const r = resolveConditionalValue(e)
       if (r) return r
     }
     return null
   }
-  if (exp.import) return resolveExportValue(exp.import)
-  if (exp.default) return resolveExportValue(exp.default)
+  for (const [k, v] of Object.entries(exp)) {
+    if (k === 'import' || k === 'node' || k === 'default') {
+      return resolveConditionalValue(v)
+    }
+  }
   return null
 }
 
@@ -231,7 +348,7 @@ const subpathNotExported = (sub: string, pj: string, from: string) => {
   throw er
 }
 
-const packageNotFound = (path: string, from: string) => {
+const packageNotFound = (path: string | null, from: string) => {
   const er = Object.assign(
     new Error(`Cannot find package '${path}' imported from ${from}`),
     {
@@ -248,6 +365,17 @@ const moduleNotFound = (path: string, from: string) => {
     {
       code: 'ERR_MODULE_NOT_FOUND',
     }
+  )
+  Error.captureStackTrace(er, resolveImport)
+  throw er
+}
+
+const packageImportNotDefined = (path: string, pj: string, from: string) => {
+  const er = Object.assign(
+    new Error(
+      `Package import specifier "${path}" is not defined in package ${pj} imported from ${from}`
+    ),
+    { code: 'ERR_PACKAGE_IMPORT_NOT_DEFINED' }
   )
   Error.captureStackTrace(er, resolveImport)
   throw er
