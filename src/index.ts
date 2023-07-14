@@ -72,24 +72,26 @@ const readJSON = async (f: string): Promise<any> =>
     .then(d => JSON.parse(d))
     .catch(() => null)
 
+type ExportValueObject = {
+  import?: ExportValue
+  default?: ExportValue
+}
+type ExportValue = string | ExportValueObject | ExportValue[]
+
+type ExportsSubpaths = {
+  [path: string]: ExportValue
+}
+type Exports = ExportValue | ExportsSubpaths
+
 type Pkg = {
   main?: string
   type?: string
   module?: string
-  exports?:
-    | string
-    | {
-        [path: string]:
-          | string
-          | {
-              import?: string | { default?: string }
-              default?: string
-            }
-      }
+  exports?: Exports
 }
 
-const isExports = (e: any): e is Pkg['exports'] =>
-  e === undefined || (!!e && (typeof e === 'object' || typeof e === 'string'))
+const isExports = (e: any): e is Exports =>
+  !!e && (typeof e === 'object' || typeof e === 'string')
 
 const isPkg = (o: any): o is Pkg =>
   !!o &&
@@ -165,26 +167,56 @@ const resolveDepImport = async (
   throw packageNotFound(pkgName, parentPath)
 }
 
+// this is the top-level exports tester.
+// can be either a string, subpath exports, exports value object, or
+// array of strings and exports value objects
 const resolveExport = (
   sub: string,
-  exp: Exclude<Pkg['exports'], undefined>,
+  exp: Exports,
   pj: string,
   from: string
 ): string => {
   const s = sub ? `./${sub}` : '.'
-  if (typeof exp === 'string') {
-    if (s === '.') return exp
-    throw subpathNotExported(s, pj, from)
+
+  if (typeof exp === 'string' || Array.isArray(exp)) {
+    const res = s === '.' && resolveExportValue(exp)
+    if (!res) throw subpathNotExported(s, pj, from)
+    return res
   }
-  const e = exp[s]
-  if (typeof e === 'string') return e
-  if (!e && typeof exp.default === 'string' && s === '.') return exp.default
-  if (!e) throw subpathNotExported(s, pj, from)
-  const d = e.import || e.default
-  if (typeof d === 'string') return d
-  const id = d?.default
-  if (typeof id === 'string') return id
-  throw subpathNotExported(s, pj, from)
+
+  // now it must be a set of named exports or an export value object
+  const e = (exp as ExportsSubpaths)[s]
+  if (!e) {
+    if (s === '.') {
+      // '.' can match against the exports object as a single value
+      const res = resolveExportValue(exp)
+      if (!res) throw subpathNotExported(s, pj, from)
+      return res
+    } else {
+      throw subpathNotExported(s, pj, from)
+    }
+  }
+
+  // now we know we have a subpath that matches. test for the value.
+  const res = resolveExportValue(e)
+  if (!res) throw subpathNotExported(s, pj, from)
+  return res
+}
+
+// find the first match for string, import, or default
+// at this point, we know we're on the right subpath already
+const resolveExportValue = (exp: ExportValue): string | null => {
+  if (typeof exp === 'string') return exp
+  if (Array.isArray(exp)) {
+    for (const e of exp) {
+      const r = resolveExportValue(e)
+      if (r) return r
+    }
+    return null
+  }
+  if (exp.import) return resolveExportValue(exp.import)
+  if (exp.default) return resolveExportValue(exp.default)
+  return null
 }
 
 const subpathNotExported = (sub: string, pj: string, from: string) => {
