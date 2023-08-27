@@ -1,0 +1,8 @@
+{
+  "name": "imports-invalid",
+  "description": "they have to start with # to count",
+  "imports": {
+    "#g": "glob",
+    "yolo": "yaml"
+  }
+}

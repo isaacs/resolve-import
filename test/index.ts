@@ -144,7 +144,10 @@ t.test('more custom internal imports', async t => {
         t.match(e, Error)
         t.matchSnapshot(e.code)
       } else {
-        t.strictSame(await resolveImport(i, p), await resolveImport(expect, p))
+        t.strictSame(
+          await resolveImport(i, p),
+          await resolveImport(expect, p)
+        )
       }
     })
   }

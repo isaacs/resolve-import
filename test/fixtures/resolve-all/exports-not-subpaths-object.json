@@ -1,0 +1,4 @@
+{
+  "name": "exports-not-subpath",
+  "exports": { "asdf": "foo.js", "default": "default.js" }
+}

@@ -1,0 +1,27 @@
+{
+  "type": "module",
+  "name": "resolve-all",
+  "exports": {
+    ".": "./default.js",
+    "./blah/*": "./default.js",
+    "./deep/*/x.js": "./deep/*.js",
+    "./de*/y.js": "./de*.js",
+    "./deep/*/z.js": "./deep/*/y.js"
+  },
+  "imports": {
+    "#module": "node:fs",
+    "#g": "glob",
+    "#y/*": "yaml/*",
+    "#u/*/l": "yaml/u*l",
+    "#invalid": "#g",
+    "#localpath": "./default.js",
+    "#localpath/*": "./deep/*.js",
+    "#localname": "resolve-all/blah/x",
+    "#localname/*": "resolve-all/deep/*",
+    "#yamlinvalid": "yaml/invalid",
+    "#yamlinvalid/*": "yaml/invalid/*",
+    "#missingdep/*": "some-missing-dependency-thats-missing/submodule/*",
+    "#emptydep/*": "empty/submodule/*",
+    "#emptystring": ""
+  }
+}

@@ -1,0 +1,12 @@
+/node_modules
+/example
+/.github
+/dist
+.env
+/tap-snapshots
+/.nyc_output
+/coverage
+/benchmark
+/bench
+/LICENSE.md
+/test/fixtures
