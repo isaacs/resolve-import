@@ -164,9 +164,9 @@ const starGlob = async (
  * Invalid exports are omitted. No errors are raised as long as the file is a
  * valid `package.json`.
  *
- * Note: in cases like `"x/*": "./file.js"`, where the list of possible import
- * paths is unbounded, the returned object will contain `"x/*"` as the key,
- * since there's no way to expand that to every possible match.
+ * Note: in cases like `"./x/*": "./file.js"`, where the list of possible
+ * import paths is unbounded, the returned object will contain `"./x/*"` as the
+ * key, since there's no way to expand that to every possible match.
  */
 export const resolveAllExports = async (
   packageJsonPath: string | URL
