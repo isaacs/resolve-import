@@ -32,16 +32,27 @@ console.log(await resolveImport('pkg', '/path/to/y.js'))
 
 ## API
 
+### Interface `ResolveImportOpts`
+
+- `conditions: string[]` The list of conditions to match on.
+  `'default'` is always accepted. Defaults to `['import',
+  'node']`. If set to `['require', 'node']`, then this is
+  equivalent to `require.resolve()`.
+
 ### resolveImport
 
 ```ts
-resolveImport(url: string | URL, parentURL?: string | URL):
+resolveImport(
+  url: string | URL,
+  parentURL?: string | URL,
+  options?: ResolveImportOpts):
     Promise<string | URL>
 ```
 
 - `url` The string or file URL object being imported.
 - `parentURL` The string or file URL object that the import is
   coming from.
+- `options` A ResolveImportOpts object (optional)
 
 Returns the string provided for node builtins, like `'fs'` or
 `'node:path'`.
@@ -56,8 +67,10 @@ subpath is not exported, etc.
 ### resolveAllExports
 
 ```ts
-resolveAllExports(packageJsonPath: string | URL):
-  Promise<Record<string, string | URL>>
+resolveAllExports(
+  packageJsonPath: string | URL,
+  options: ResolveImportOpts):
+    Promise<Record<string, string | URL>>
 ```
 
 Given a `package.json` path or file URL, resolve all valid
@@ -82,8 +95,10 @@ object.
 ### resolveAllLocalImports
 
 ```ts
-resolveAllLocalImports(packageJsonPath: string | URL):
-  Record<string, string | URL>
+resolveAllLocalImports(
+  packageJsonPath: string | URL,
+  options: ResolveImportOpts):
+    Record<string, string | URL>
 ```
 
 Similar to `resolveAllExports`, but this resolves the entries in

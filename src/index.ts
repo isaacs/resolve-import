@@ -47,7 +47,8 @@ const toPath = (p: string | URL): string =>
  * has invalid exports.
  */
 export const resolveAllLocalImports = async (
-  packageJsonPath: string | URL
+  packageJsonPath: string | URL,
+  options: ResolveImportOpts = {}
 ): Promise<Record<string, string | URL>> => {
   const pjPath = toPath(packageJsonPath)
   const pjDir = dirname(pjPath)
@@ -59,7 +60,7 @@ export const resolveAllLocalImports = async (
   }
   const results: Record<string, URL | string> = {}
 
-  for (const [sub, target] of getNamedImportsList(pkg)) {
+  for (const [sub, target] of getNamedImportsList(pkg, options)) {
     // if the import is local, then look it up
     // if it's another package, then look up that package
     // if it's another package with a *, then look up all exports
@@ -169,7 +170,8 @@ const starGlob = async (
  * key, since there's no way to expand that to every possible match.
  */
 export const resolveAllExports = async (
-  packageJsonPath: string | URL
+  packageJsonPath: string | URL,
+  options: ResolveImportOpts = {}
 ): Promise<Record<string, string | URL>> => {
   const pjPath = toPath(packageJsonPath)
   const pjDir = dirname(pjPath)
@@ -189,7 +191,7 @@ export const resolveAllExports = async (
     // pulling the list from the set itself.
     /* c8 ignore start */
     try {
-      res = resolveExport(sub, exports as Exports, pjPath, pjPath)
+      res = resolveExport(sub, exports as Exports, pjPath, pjPath, options)
     } catch {}
     if (!res) continue
     /* c8 ignore stop */
@@ -211,6 +213,25 @@ export const resolveAllExports = async (
   return results
 }
 
+export interface ResolveImportOpts {
+  /**
+   * Used when resolves take multiple steps through dependencies.
+   *
+   * @internal
+   */
+  originalParent?: string
+
+  /**
+   * List of conditions to resolve. Defaults to ['import', 'node'].
+   *
+   * If set to ['require', 'node'], then this is functionally equivalent to
+   * `require.resolve()`.
+   *
+   * 'default' is always allowed.
+   */
+  conditions?: string[]
+}
+
 /**
  * Resolve an import URL or string as if it were coming from the
  * module at parentURL.
@@ -229,10 +250,13 @@ export const resolveImport = async (
    * the place the import() would be coming from. Required for relative
    * imports.
    */
-  parentURL?: string | URL,
-  /** @internal */
-  originalParent: string | URL | undefined = parentURL
+  parentURL: string | URL | undefined = undefined,
+  options: ResolveImportOpts = {}
 ): Promise<URL | string> => {
+  // already resolved, just check that it exists
+  if (typeof url === 'string' && url.startsWith('file://')) {
+    url = new URL(url)
+  }
   if (typeof url === 'object') {
     if (!(await fileExists(url))) {
       throw moduleNotFound(String(url), String(parentURL))
@@ -240,29 +264,17 @@ export const resolveImport = async (
     return url
   }
 
-  if (url.startsWith('file://')) {
-    const u = new URL(url)
-    if (!(await fileExists(u))) {
-      throw moduleNotFound(url, String(parentURL))
-    }
-    return new URL(url)
-  }
-
-  if (parentURL && typeof parentURL === 'string') {
-    parentURL = parentURL.startsWith('file://')
-      ? new URL(parentURL)
-      : pathToFileURL(parentURL)
-  }
+  const pu = parentURL ? toFileURL(parentURL) : undefined
 
   if (isRelativeRequire(url)) {
-    if (!parentURL) {
+    if (!pu) {
       throw relativeImportWithoutParentURL(url, parentURL)
     }
-    const u = new URL(url, parentURL)
+    const u = new URL(url, pu)
     if (!(await fileExists(u))) {
       throw moduleNotFound(url, String(parentURL))
     }
-    return new URL(url, parentURL)
+    return new URL(url, pu)
   }
 
   if (isAbsolute(url)) {
@@ -278,15 +290,15 @@ export const resolveImport = async (
 
   // ok, we have to resolve it. some kind of bare dep import,
   // either a package name resolving to module or main, or a named export.
-  parentURL = parentURL || resolve('x')
-  const parentPath: string =
-    typeof parentURL === 'object' ? fileURLToPath(parentURL) : parentURL
-  originalParent = String(originalParent || parentURL)
-
+  const parentPath: string = toPath(parentURL || resolve('x'))
+  const opts = {
+    ...options,
+    originalParent: String(options.originalParent || parentPath),
+  }
   if (url) {
-    return resolvePackageImport(url, parentPath, originalParent)
+    return resolvePackageImport(url, parentPath, opts)
   } else {
-    return resolveDependencyExports(url, parentPath, originalParent)
+    return resolveDependencyExports(url, parentPath, opts)
   }
 }
 
@@ -379,8 +391,9 @@ const readPkg = async (f: string): Promise<Pkg | null> => {
 const resolvePackageImport = async (
   url: string,
   parentPath: string,
-  originalParent: string
+  options: ResolveImportOpts & { originalParent: string }
 ): Promise<URL | string> => {
+  const { originalParent } = options
   const parts = url.match(/^(@[^\/]+\/[^\/]+|[^\/]+)(?:\/(.*))?$/)
   // impossible
   /* c8 ignore start */
@@ -396,7 +409,13 @@ const resolvePackageImport = async (
       const [, pkgName, sub] = parts
       if (pkgName === pkg.name) {
         // ok, see if sub is a valid export then
-        const subPath = resolveExport(sub, pkg.exports, pj, originalParent)
+        const subPath = resolveExport(
+          sub,
+          pkg.exports,
+          pj,
+          originalParent,
+          options
+        )
         const resolved = resolve(dir, subPath)
         if (await fileExists(resolved)) return pathToFileURL(resolved)
         else throw moduleNotFound(resolved, originalParent)
@@ -406,15 +425,15 @@ const resolvePackageImport = async (
     if (pkg.imports && url.startsWith('#')) {
       const exact = pkg.imports[url]
       if (exact !== undefined) {
-        const res = resolveConditionalValue(exact)
+        const res = resolveConditionalValue(exact, options)
         if (!res) {
           throw packageImportNotDefined(url, pj, originalParent)
         }
         // kind of weird behavior, but it's what node does
         if (res.startsWith('#')) {
-          return resolveDependencyExports(null, parentPath, originalParent)
+          return resolveDependencyExports(null, parentPath, options)
         }
-        return resolveImport(res, pj, originalParent)
+        return resolveImport(res, pj, options)
       }
 
       const sm = findStarMatch(url, pkg.imports)
@@ -423,23 +442,23 @@ const resolvePackageImport = async (
       }
       const [key, mid] = sm
       const match = pkg.imports[key]
-      const res = resolveConditionalValue(match)
+      const res = resolveConditionalValue(match, options)
       if (!res) {
         throw packageImportNotDefined(url, pj, originalParent)
       }
       if (res.startsWith('#')) {
-        return resolveDependencyExports(null, parentPath, originalParent)
+        return resolveDependencyExports(null, parentPath, options)
       }
       const expand = res.replace(/\*/g, mid)
 
       // start over with the resolved import
-      return resolveImport(expand, pj, originalParent)
+      return resolveImport(expand, pj, options)
     }
 
-    return resolveDependencyExports(url, parentPath, originalParent)
+    return resolveDependencyExports(url, parentPath, options)
   }
 
-  return resolveDependencyExports(url, parentPath, originalParent)
+  return resolveDependencyExports(url, parentPath, options)
 }
 
 const findDepPackage = async (
@@ -467,8 +486,9 @@ const findDepPackage = async (
 const resolveDependencyExports = async (
   url: string | null,
   parentPath: string,
-  originalParent: string
+  options: ResolveImportOpts & { originalParent: string }
 ): Promise<URL> => {
+  const { originalParent } = options
   const parts = url?.match(/^(@[^\/]+\/[^\/]+|[^\/]+)(?:\/(.*))?$/)
   const [, pkgName, sub] =
     url === null ? [, null, ''] : parts || ['', '', '']
@@ -498,7 +518,13 @@ const resolveDependencyExports = async (
   // ok, have a package, look up the export if present.
   // otherwise, use main, otherwise index.js
   if (pkg.exports) {
-    const subPath = resolveExport(sub, pkg.exports, pj, originalParent)
+    const subPath = resolveExport(
+      sub,
+      pkg.exports,
+      pj,
+      originalParent,
+      options
+    )
     const resolved = resolve(ppath, subPath)
     if (await fileExists(resolved)) return pathToFileURL(resolved)
     else throw moduleNotFound(resolved, originalParent)
@@ -526,7 +552,8 @@ const resolveExport = (
   sub: string,
   exp: Exports,
   pj: string,
-  from: string
+  from: string,
+  options: ResolveImportOpts
 ): string => {
   const s = !sub
     ? '.'
@@ -535,7 +562,7 @@ const resolveExport = (
     : `./${sub}`
 
   if (typeof exp === 'string' || Array.isArray(exp)) {
-    const res = s === '.' && resolveConditionalValue(exp)
+    const res = s === '.' && resolveConditionalValue(exp, options)
     if (!res) throw subpathNotExported(s, pj, from)
     return res
   }
@@ -543,7 +570,7 @@ const resolveExport = (
   // now it must be a set of named exports or an export value object
   // first try to resolve as a value object, if that's allowed
   if (s === '.') {
-    const res = resolveConditionalValue(exp)
+    const res = resolveConditionalValue(exp, options)
     if (res) return res
   }
 
@@ -553,7 +580,7 @@ const resolveExport = (
   // if we have an exact match, use that
   const e = es[s]
   if (e !== undefined) {
-    const res = resolveConditionalValue(e)
+    const res = resolveConditionalValue(e, options)
     if (!res) throw subpathNotExported(s, pj, from)
     return res
   }
@@ -561,7 +588,7 @@ const resolveExport = (
   const sm = findStarMatch(s, es)
   if (sm) {
     const [key, mid] = sm
-    const res = resolveConditionalValue(es[key])
+    const res = resolveConditionalValue(es[key], options)
     if (!res) throw subpathNotExported(s, pj, from)
     return res.replace(/\*/g, mid)
   }
@@ -615,12 +642,15 @@ const getNamedExportsList = (exports?: Exports): string[] => {
  *
  * Stars are not expanded.
  */
-const getNamedImportsList = (pkg: Pkg): [string, string][] => {
+const getNamedImportsList = (
+  pkg: Pkg,
+  options: ResolveImportOpts
+): [string, string][] => {
   const results: [string, string][] = []
   const { imports } = pkg
   if (!imports || typeof imports !== 'object') return results
   for (const [k, v] of Object.entries(imports)) {
-    const r = resolveConditionalValue(v)
+    const r = resolveConditionalValue(v, options)
     if (r && !r.startsWith('#')) results.push([k, r])
   }
   return results
@@ -630,19 +660,23 @@ const getNamedImportsList = (pkg: Pkg): [string, string][] => {
  * find the first match for string, import, node, or default
  * at this point, we know we're on the right subpath already
  */
-const resolveConditionalValue = (exp: ConditionalValue): string | null => {
+const resolveConditionalValue = (
+  exp: ConditionalValue,
+  options: ResolveImportOpts
+): string | null => {
+  const { conditions = ['import', 'node'] } = options
   if (exp === null || typeof exp === 'string') return exp
   if (Array.isArray(exp)) {
     for (const e of exp) {
-      const r = resolveConditionalValue(e)
+      const r = resolveConditionalValue(e, options)
       if (r) return r
     }
     return null
   }
   for (const [k, v] of Object.entries(exp)) {
     //TODO: this list should be an option that's passed in by the caller
-    if (k === 'import' || k === 'node' || k === 'default') {
-      return resolveConditionalValue(v)
+    if (conditions.includes(k) || k === 'default') {
+      return resolveConditionalValue(v, options)
     }
   }
   return null
