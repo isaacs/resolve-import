@@ -320,9 +320,7 @@ const readJSON = async (f: string): Promise<any> =>
     .catch(() => null)
 
 export type ConditionalValueObject = {
-  import?: ConditionalValue
-  node?: ConditionalValue
-  default?: ConditionalValue
+  [k: string]: ConditionalValue
 }
 export type ConditionalValue =
   | null
