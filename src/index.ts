@@ -40,11 +40,7 @@ const toPath = (p: string | URL): string =>
  * possible local import path is mapped to the file URL that it would resolve
  * to.
  *
- * Invalid local imports are omitted.
- *
- * If a local import resolves into a dependecy, like `{"#d/*":"dep/*"}`, then
- * that may result in resolving to a file that does not exist, if the dep
- * has invalid exports.
+ * Invalid and non-resolving imports are omitted.
  */
 export const resolveAllLocalImports = async (
   packageJsonPath: string | URL,
