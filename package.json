@@ -3,6 +3,10 @@
   "version": "1.2.0",
   "description": "Look up the file that an `import()` statement will resolve to, for use in node esm loaders",
   "author": "Isaac Z. Schlueter <i@izs.me> (https://blog.izs.me)",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/isaacs/resolve-import.git"
+  },
   "main": "./dist/cjs/index.js",
   "module": "./dist/mjs/index.js",
   "exports": {
@@ -70,7 +74,6 @@
   },
   "dependencies": {
     "glob": "^10.3.3",
-    "sync-content": "^1.0.2",
     "walk-up-path": "^3.0.1"
   },
   "devDependencies": {
@@ -79,6 +82,7 @@
     "c8": "^7.12.0",
     "mkdirp": "1",
     "prettier": "^2.8.2",
+    "sync-content": "^1.0.2",
     "tap": "^16.3.7",
     "ts-node": "^10.9.1",
     "typedoc": "^0.24.8",
