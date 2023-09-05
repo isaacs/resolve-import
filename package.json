@@ -1,6 +1,6 @@
 {
   "name": "resolve-import",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Look up the file that an `import()` statement will resolve to, for use in node esm loaders",
   "author": "Isaac Z. Schlueter <i@izs.me> (https://blog.izs.me)",
   "repository": {
