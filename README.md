@@ -32,6 +32,13 @@ console.log(await resolveImport('pkg', '/path/to/y.js'))
 
 ## API
 
+These functions are all exported on the main module, as well as
+being available on `resolve-import/{hyphen-name}`, for example:
+
+```js
+import { resolveAllExports } from 'resolve-import/resolve-all-exports'
+```
+
 ### Interface `ResolveImportOpts`
 
 - `conditions: string[]` The list of conditions to match on.
@@ -116,7 +123,7 @@ Windows).
 
 ```ts
 getAllConditions(
-  importsExports: Imports | Exports | ConditionalValue
+  importsExports: Imports | Exports
 ): string[]
 ```
 
@@ -147,3 +154,59 @@ Given an entry from an `imports` or `exports` object, resolve the
 conditional value based on the `conditions` list in the provided
 `options` object. By default, resolves with the conditions
 `['import', 'node']`.
+
+### getAllConditionalValues
+
+```ts
+getAllConditionalValues(
+  importsExports: Imports | Exports
+): string[]
+```
+
+Given an `exports` or `imports` value from a package, return the
+list of all possible conditional values that it might potentially
+resolve to, for any possible set of import conditions.
+
+Filters out cases that are unreachable, such as conditions that
+appear after a `default` value, or after a set of conditions that
+would have been satisfied previously.
+
+For example:
+
+```json
+{
+  "import": { "node": "./x.js" },
+  "node": { "import": { "blah": "./y.js" } }
+}
+```
+
+Will return `['./x.js']`, omitting the unreachable `'./y.js'`,
+because the conditions ['import','node','blah'] would have been
+satisfied by the earlier condition.
+
+Note that this does _not_ mean that the target actually can be
+imported, as it may not exist, be an incorrect module type, etc.
+
+Star values are not expanded. For that, use `resolveAllExports`
+or `resolveAllLocalImports`.
+
+### getConditionalValuesList
+
+```ts
+getConditionalValuesList(
+  importsExports: Imports | Exports
+): [string, Set<string>, string | null][]
+```
+
+Given an `exports` or `imports` value from a package, return the
+list of all possible conditional values that it might potentially
+resolve to, for any possible set of import conditions, along with
+the `Set<string>` of conditions, any superset of which will
+result in the condition.
+
+The first entry in the returned list is the submodule path, or
+`'.'` if the value provided did not have submodule paths.
+
+The list includes null results, since while these are not a valid
+resolution per se, they do _prevent_ valid resolutions that match
+the same conditions.

@@ -1,3 +1,7 @@
+/**
+ * Exported as `'resolve-import/resolve-conditional-value'`
+ * @module
+ */
 import { ConditionalValue, ResolveImportOpts } from './index.js'
 
 /**
@@ -18,7 +22,6 @@ export const resolveConditionalValue = (
     return null
   }
   for (const [k, v] of Object.entries(exp)) {
-    //TODO: this list should be an option that's passed in by the caller
     if (conditions.includes(k) || k === 'default') {
       return resolveConditionalValue(v, options)
     }

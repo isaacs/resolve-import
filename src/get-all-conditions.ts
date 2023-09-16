@@ -1,3 +1,7 @@
+/**
+ * Exported as `'resolve-import/get-all-conditions'`
+ * @module
+ */
 import { ConditionalValue, Exports, Imports } from './index.js'
 
 /**
@@ -17,7 +21,7 @@ import { ConditionalValue, Exports, Imports } from './index.js'
  * or object shape.
  */
 export const getAllConditions = (
-  importsExports: Imports | Exports | ConditionalValue
+  importsExports: Imports | Exports
 ): string[] => {
   if (
     !!importsExports &&

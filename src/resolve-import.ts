@@ -1,3 +1,7 @@
+/**
+ * Exported as `'resolve-import/resolve-import'`
+ * @module
+ */
 import { isBuiltin } from 'module'
 import { isAbsolute, resolve } from 'path'
 import { pathToFileURL } from 'url'

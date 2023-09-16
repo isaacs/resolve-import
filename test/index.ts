@@ -5,7 +5,6 @@ import { resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import t from 'tap'
 import {
-  ConditionalValue,
   Exports,
   getAllConditions,
   Imports,
@@ -226,7 +225,7 @@ t.test('internal imports relative to package.json', async t => {
 
 t.test('getAllConditions', t => {
   t.test('valid cases', t => {
-    const cases: [Imports | Exports | ConditionalValue, string[]][] = [
+    const cases: [Imports | Exports, string[]][] = [
       ['./hello.js', []],
       [{ default: './x.js' }, []],
       [

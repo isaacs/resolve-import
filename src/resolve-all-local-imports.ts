@@ -1,3 +1,7 @@
+/**
+ * Exported as `'resolve-import/resolve-all-local-imports'`
+ * @module
+ */
 import { dirname, resolve } from 'path'
 import { pathToFileURL } from 'url'
 import { invalidPackage } from './errors.js'

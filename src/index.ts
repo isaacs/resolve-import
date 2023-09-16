@@ -1,4 +1,6 @@
+export * from './get-all-conditional-values.js'
 export * from './get-all-conditions.js'
+export * from './get-unique-condition-sets.js'
 export * from './is-relative-require.js'
 export * from './resolve-all-exports.js'
 export * from './resolve-all-local-imports.js'

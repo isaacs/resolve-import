@@ -37,6 +37,8 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Prepare
+        run: npm prepare
       - name: Generate typedocs
         run: npm run typedoc
 
