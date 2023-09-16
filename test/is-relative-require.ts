@@ -1,10 +1,10 @@
 import t from 'tap'
 
-t.test('not windows', t => {
-  const { isRelativeRequire } = t.mock(
-    '../dist/cjs/is-relative-require.js',
+t.test('not windows', async t => {
+  const { isRelativeRequire } = await t.mockImport(
+    '../dist/esm/is-relative-require.js',
     {
-      '../dist/cjs/is-windows.js': {
+      '../dist/esm/is-windows.js': {
         isWindows: false,
       },
     }
@@ -18,14 +18,13 @@ t.test('not windows', t => {
   t.equal(isRelativeRequire('.\\x'), false)
   t.equal(isRelativeRequire('..\\x'), false)
   t.equal(isRelativeRequire('..\\..\\x'), false)
-  t.end()
 })
 
-t.test('yes windows', t => {
-  const { isRelativeRequire } = t.mock(
-    '../dist/cjs/is-relative-require.js',
+t.test('yes windows', async t => {
+  const { isRelativeRequire } = await t.mockImport(
+    '../dist/esm/is-relative-require.js',
     {
-      '../dist/cjs/is-windows.js': {
+      '../dist/esm/is-windows.js': {
         isWindows: true,
       },
     }
@@ -39,5 +38,4 @@ t.test('yes windows', t => {
   t.equal(isRelativeRequire('.\\x'), true)
   t.equal(isRelativeRequire('..\\x'), true)
   t.equal(isRelativeRequire('..\\..\\x'), true)
-  t.end()
 })

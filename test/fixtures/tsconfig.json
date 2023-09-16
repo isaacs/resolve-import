@@ -14,6 +14,6 @@
     "sourceMap": true,
     "strict": true,
     "target": "es2022",
-    "module": "commonjs"
+    "module": "node16"
   }
 }

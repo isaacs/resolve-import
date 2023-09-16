@@ -8,7 +8,7 @@ import {
   packageNotFound,
   relativeImportWithoutParentURL,
   subpathNotExported,
-} from '../dist/cjs/errors.js'
+} from '../dist/esm/errors.js'
 
 t.matchSnapshot(invalidImportSpecifier('some invalid url'))
 t.matchSnapshot(invalidPackage('/some/package.json'))

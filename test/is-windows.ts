@@ -1,6 +1,6 @@
 import t from 'tap'
 
-t.test('not windows', t => {
+t.test('not windows', async t => {
   const d = Object.getOwnPropertyDescriptor(
     process,
     'platform'
@@ -14,12 +14,11 @@ t.test('not windows', t => {
     configurable: true,
     writable: true,
   })
-  const { isWindows } = t.mock('../dist/cjs/is-windows.js', {})
+  const { isWindows } = await t.mockImport('../dist/esm/is-windows.js', {})
   t.equal(isWindows, false)
-  t.end()
 })
 
-t.test('yes windows', t => {
+t.test('yes windows', async t => {
   const d = Object.getOwnPropertyDescriptor(
     process,
     'platform'
@@ -33,7 +32,6 @@ t.test('yes windows', t => {
     configurable: true,
     writable: true,
   })
-  const { isWindows } = t.mock('../dist/cjs/is-windows.js', {})
+  const { isWindows } = await t.mockImport('../dist/esm/is-windows.js', {})
   t.equal(isWindows, true)
-  t.end()
 })

@@ -1,11 +1,22 @@
 import { spawn } from 'node:child_process'
 import { readdir } from 'node:fs/promises'
+import { createRequire } from 'node:module'
 import { resolve } from 'node:path'
-import { pathToFileURL } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import t from 'tap'
-import { resolveImport } from '../dist/cjs/index.js'
+import {
+  ConditionalValue,
+  Exports,
+  getAllConditions,
+  Imports,
+  resolveImport,
+} from '../dist/esm/index.js'
+const require = createRequire(import.meta.url)
 
-const fixtures = resolve(__dirname, 'fixtures')
+const fixtures = resolve(
+  fileURLToPath(new URL('.', import.meta.url)),
+  'fixtures'
+)
 const nm = resolve(fixtures, 'node_modules')
 
 t.test('basic run-through of all dep cases', async t => {
@@ -17,7 +28,6 @@ t.test('basic run-through of all dep cases', async t => {
   await new Promise<void>(r => proc.on('close', () => r()))
   const expect = JSON.parse(Buffer.concat(out).toString())
 
-  t.plan(cases.length)
   for (const c of cases) {
     t.test(c, async t => {
       const root = await resolveImport(c, p)
@@ -38,7 +48,19 @@ t.test('basic run-through of all dep cases', async t => {
           const er = e as NodeJS.ErrnoException
           return [er.code, er.message]
         })
-      t.strictSame([root, sub, missing], expect[c])
+      // node 20.5 started reporting the package.json not being findable,
+      // instead of the folder, which is also not ideal.
+      // See: https://github.com/nodejs/node/issues/49674
+      t.strictSame(
+        [root, sub, missing],
+        expect[c].map((s: string | [string, string]) =>
+          Array.isArray(s) &&
+          s[0] === 'ERR_MODULE_NOT_FOUND' &&
+          typeof s[1] === 'string'
+            ? [s[0], s[1].replace(/package\.json/, '')]
+            : s
+        )
+      )
       const internal = await resolveImport(`#internal-${c}`, p)
         .then(r => String(r))
         .catch(e => {
@@ -49,6 +71,7 @@ t.test('basic run-through of all dep cases', async t => {
       t.end()
     })
   }
+  t.end()
 })
 
 t.test('missing package fails', async t => {
@@ -109,10 +132,11 @@ t.test('relative url resolves', async t => {
 
 t.test('resolve a dep from right here', async t => {
   const dep = 'tap'
-  const expect = pathToFileURL(require.resolve('tap/lib/tap.mjs'))
+  const expect = pathToFileURL(
+    resolve('node_modules/tap/dist/esm/index.js')
+  )
   t.strictSame(await resolveImport(dep), expect)
-  const p = pathToFileURL(__filename)
-  t.strictSame(await resolveImport(dep, p), expect)
+  t.strictSame(await resolveImport(dep, import.meta.url), expect)
 })
 
 t.test('more custom internal imports', async t => {
@@ -136,7 +160,6 @@ t.test('more custom internal imports', async t => {
     ['#passing-starmatch', './x.js'],
     ['', null],
   ]
-  t.plan(cases.length)
   for (const [i, expect] of cases) {
     t.test(`${i} => ${expect}`, async t => {
       if (expect === null) {
@@ -151,6 +174,7 @@ t.test('more custom internal imports', async t => {
       }
     })
   }
+  t.end()
 })
 
 t.test('named package with exports internal import', async t => {
@@ -198,4 +222,62 @@ t.test('internal imports relative to package.json', async t => {
   t.strictSame(await resolveImport('@i/p/vnd', from), expect)
   t.rejects(resolveImport('#missing', from))
   t.rejects(resolveImport('@i/p/missing', from))
+})
+
+t.test('getAllConditions', t => {
+  t.test('valid cases', t => {
+    const cases: [Imports | Exports | ConditionalValue, string[]][] = [
+      ['./hello.js', []],
+      [{ default: './x.js' }, []],
+      [
+        { import: { types: './x.d.ts', default: './x.mjs' } },
+        ['import', 'types'],
+      ],
+      [
+        { import: [{ types: './x.d.ts' }, './x.mjs'] },
+        ['import', 'types'],
+      ],
+      [{ import: ['./x.mjs', { types: './x.d.ts' }] }, ['import']],
+      [{ default: ['./x.mjs', { types: './x.d.ts' }] }, []],
+      [
+        { default: ['./x.mjs', { types: './x.d.ts' }], require: 'x.cjs' },
+        [],
+      ],
+      [
+        { require: 'x.cjs', default: ['./x.mjs', { types: './x.d.ts' }] },
+        ['require'],
+      ],
+      [
+        { blah: 'x.cjs', default: ['./x.mjs', { types: './x.d.ts' }] },
+        ['blah'],
+      ],
+      [
+        [{ x: 'y' }, { x: 'z' }, { y: 'z' }, { y: 'a' }],
+        ['x', 'y'],
+      ],
+      [
+        {
+          '#a': [{ x: 'y' }, { x: 'z' }, { y: 'z' }, { y: 'a' }],
+          '#b': [{ x: 'y' }, { x: 'z' }, { y: 'z' }, { y: 'a' }],
+        },
+        ['x', 'y'],
+      ],
+    ]
+
+    t.plan(cases.length)
+    for (const [ie, conds] of cases) {
+      t.test(JSON.stringify(ie), t => {
+        t.strictSame(new Set(getAllConditions(ie)), new Set(conds))
+        t.end()
+      })
+    }
+  })
+
+  // cannot mix types
+  t.throws(() => getAllConditions({ '#x': 'y', './z': 'invalid' }))
+  t.throws(() => getAllConditions({ './x': 'y', '#z': 'invalid' }))
+  t.throws(() => getAllConditions({ x: 'y', '#z': 'invalid' }))
+  t.throws(() => getAllConditions({ x: 'y', './z': 'invalid' }))
+
+  t.end()
 })

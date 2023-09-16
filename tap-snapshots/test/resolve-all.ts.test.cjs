@@ -5,19 +5,19 @@
  * Make sure to inspect the output below.  Do not ignore changes!
  */
 'use strict'
-exports[`test/resolve-all.ts TAP if exports is only one path, return "." only > must match snapshot 1`] = `
+exports[`test/resolve-all.ts > TAP > if exports is only one path, return "." only > must match snapshot 1`] = `
 {
   ".": "file://{CWD}/test/fixtures/resolve-all/default.js"
 }
 `
 
-exports[`test/resolve-all.ts TAP if exports is only one path, return "." only > must match snapshot 2`] = `
+exports[`test/resolve-all.ts > TAP > if exports is only one path, return "." only > must match snapshot 2`] = `
 {
   ".": "file://{CWD}/test/fixtures/resolve-all/default.js"
 }
 `
 
-exports[`test/resolve-all.ts TAP resolveAllExports > must match snapshot 1`] = `
+exports[`test/resolve-all.ts > TAP > resolveAllExports > must match snapshot 1`] = `
 {
   ".": "file://{CWD}/test/fixtures/resolve-all/default.js",
   "./blah/*": "file://{CWD}/test/fixtures/resolve-all/default.js",
@@ -27,14 +27,13 @@ exports[`test/resolve-all.ts TAP resolveAllExports > must match snapshot 1`] = `
 }
 `
 
-exports[`test/resolve-all.ts TAP resolveAllLocalImports > must match snapshot 1`] = `
+exports[`test/resolve-all.ts > TAP > resolveAllLocalImports > must match snapshot 1`] = `
 {
   "#module": "node:fs",
   "#g": "file://{CWD}/test/fixtures/resolve-all/node_modules/glob/dist/mjs/index.js",
-  "#y/parse-cst": "file://{CWD}/node_modules/yaml/parse-cst.js",
-  "#y/types": "file://{CWD}/node_modules/yaml/types.mjs",
-  "#y/util": "file://{CWD}/node_modules/yaml/util.mjs",
-  "#u/ti/l": "file://{CWD}/node_modules/yaml/util.mjs",
+  "#y/package.json": "file://{CWD}/node_modules/yaml/package.json",
+  "#y/util": "file://{CWD}/node_modules/yaml/dist/util.js",
+  "#u/ti/l": "file://{CWD}/node_modules/yaml/dist/util.js",
   "#localpath": "file://{CWD}/test/fixtures/resolve-all/default.js",
   "#localpath/a/b/c/d/y": "file://{CWD}/test/fixtures/resolve-all/deep/a/b/c/d/y.js",
   "#localname": "file://{CWD}/test/fixtures/resolve-all/default.js"

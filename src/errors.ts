@@ -3,12 +3,12 @@
  * @module
  */
 
+import { resolveImport } from './resolve-import.js'
+
 // TODO: move "caller" to an options object. Then the same options object can
 // be used that handles conditions, parentURL, etc., and the relevant
 // top-level function can set it explicitly at the start of the process and
 // just pass it along.
-
-import { resolveImport } from './index.js'
 
 export const invalidImportSpecifier = (
   url: string,

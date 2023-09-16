@@ -8,6 +8,7 @@
     "./passing-*": "./x.js",
     "./failing-*": null
   },
+  "type": "commonjs",
   "imports": {
     "#x": "./x.js",
     "#foo*bar": "./multi-x-star-x.js",

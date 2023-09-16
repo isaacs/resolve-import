@@ -1,10 +1,10 @@
 import { resolve } from 'path'
 import t from 'tap'
-import { pathToFileURL } from 'url'
+import { fileURLToPath, pathToFileURL } from 'url'
 import {
   resolveAllExports,
   resolveAllLocalImports,
-} from '../dist/cjs/index.js'
+} from '../dist/esm/index.js'
 
 const cwd = pathToFileURL(process.cwd()).pathname
 
@@ -21,6 +21,7 @@ t.formatSnapshot = (o: Record<string, URL | string>) => {
   )
 }
 
+const __dirname = fileURLToPath(new URL('.', import.meta.url))
 const pj = resolve(__dirname, 'fixtures/resolve-all/package.json')
 const noExportsImports = resolve(
   __dirname,
@@ -52,6 +53,7 @@ t.test('resolveAllExports', async t => {
 })
 
 t.test('throws on invalid package', async t => {
+  const __filename = fileURLToPath(import.meta.url)
   await t.rejects(resolveAllLocalImports(__filename))
   await t.rejects(resolveAllExports(__filename))
   await t.rejects(resolveAllLocalImports(pathToFileURL(importsInvalid)))

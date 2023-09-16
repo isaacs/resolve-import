@@ -5,14 +5,14 @@
  * Make sure to inspect the output below.  Do not ignore changes!
  */
 'use strict'
-exports[`test/conditions.ts TAP resolve import types > must match snapshot 1`] = `
-file://{CWD}/dist/mjs/index.d.ts
+exports[`test/conditions.ts > TAP > resolve import types > must match snapshot 1`] = `
+file://{CWD}/dist/esm/index.d.ts
 `
 
-exports[`test/conditions.ts TAP resolve require > must match snapshot 1`] = `
-file://{CWD}/dist/cjs/index.js
+exports[`test/conditions.ts > TAP > resolve require > must match snapshot 1`] = `
+file://{CWD}/dist/commonjs/index.js
 `
 
-exports[`test/conditions.ts TAP resolve require types > must match snapshot 1`] = `
-file://{CWD}/dist/cjs/index.d.ts
+exports[`test/conditions.ts > TAP > resolve require types > must match snapshot 1`] = `
+file://{CWD}/dist/commonjs/index.d.ts
 `

@@ -1,44 +1,84 @@
 {
   "name": "resolve-import",
   "version": "1.2.1",
-  "description": "Look up the file that an `import()` statement will resolve to, for use in node esm loaders",
+  "description": "Look up the file that an `import()` statement will resolve to, possibly relative to a given parentURL",
   "author": "Isaac Z. Schlueter <i@izs.me> (https://blog.izs.me)",
   "repository": {
     "type": "git",
     "url": "git://github.com/isaacs/resolve-import.git"
   },
-  "main": "./dist/cjs/index.js",
-  "module": "./dist/mjs/index.js",
+  "type": "module",
+  "tshy": {
+    "exports": {
+      "./package.json": "./package.json",
+      ".": "./src/index.ts",
+      "./is-relative-require": "./src/is-relative-require.ts",
+      "./resolve-conditional-value": "./src/resolve-conditional-value.ts",
+      "./resolve-all-exports": "./src/resolve-all-exports.ts",
+      "./resolve-all-local-imports": "./src/resolve-all-local-imports.ts",
+      "./get-all-conditions": "./src/get-all-conditions.ts"
+    }
+  },
   "exports": {
     "./package.json": "./package.json",
     ".": {
       "import": {
-        "types": "./dist/mjs/index.d.ts",
-        "default": "./dist/mjs/index.js"
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
       },
       "require": {
-        "types": "./dist/cjs/index.d.ts",
-        "default": "./dist/cjs/index.js"
+        "types": "./dist/commonjs/index.d.ts",
+        "default": "./dist/commonjs/index.js"
       }
     },
     "./is-relative-require": {
       "import": {
-        "types": "./dist/mjs/is-relative-require.d.ts",
-        "default": "./dist/mjs/is-relative-require.js"
+        "types": "./dist/esm/is-relative-require.d.ts",
+        "default": "./dist/esm/is-relative-require.js"
       },
       "require": {
-        "types": "./dist/cjs/is-relative-require.d.ts",
-        "default": "./dist/cjs/is-relative-require.js"
+        "types": "./dist/commonjs/is-relative-require.d.ts",
+        "default": "./dist/commonjs/is-relative-require.js"
       }
     },
-    "./builtin-set": {
+    "./resolve-conditional-value": {
       "import": {
-        "types": "./dist/mjs/builtin-set.d.ts",
-        "default": "./dist/mjs/builtin-set.js"
+        "types": "./dist/esm/resolve-conditional-value.d.ts",
+        "default": "./dist/esm/resolve-conditional-value.js"
       },
       "require": {
-        "types": "./dist/cjs/builtin-set.d.ts",
-        "default": "./dist/cjs/builtin-set.js"
+        "types": "./dist/commonjs/resolve-conditional-value.d.ts",
+        "default": "./dist/commonjs/resolve-conditional-value.js"
+      }
+    },
+    "./resolve-all-exports": {
+      "import": {
+        "types": "./dist/esm/resolve-all-exports.d.ts",
+        "default": "./dist/esm/resolve-all-exports.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/resolve-all-exports.d.ts",
+        "default": "./dist/commonjs/resolve-all-exports.js"
+      }
+    },
+    "./resolve-all-local-imports": {
+      "import": {
+        "types": "./dist/esm/resolve-all-local-imports.d.ts",
+        "default": "./dist/esm/resolve-all-local-imports.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/resolve-all-local-imports.d.ts",
+        "default": "./dist/commonjs/resolve-all-local-imports.js"
+      }
+    },
+    "./get-all-conditions": {
+      "import": {
+        "types": "./dist/esm/get-all-conditions.d.ts",
+        "default": "./dist/esm/get-all-conditions.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/get-all-conditions.d.ts",
+        "default": "./dist/commonjs/get-all-conditions.js"
       }
     }
   },
@@ -50,11 +90,11 @@
     "preversion": "npm test",
     "postversion": "npm publish",
     "prepublishOnly": "git push origin --follow-tags",
-    "prepare": "tsc -p tsconfig.json && tsc -p tsconfig-esm.json && bash ./scripts/fixup.sh",
+    "prepare": "tshy",
     "pretest": "npm run prepare",
     "presnap": "npm run prepare",
-    "test": "c8 tap",
-    "snap": "c8 tap",
+    "test": "tap",
+    "snap": "tap",
     "format": "prettier --write . --loglevel warn",
     "typedoc": "typedoc --tsconfig tsconfig-esm.json ./src/*.ts"
   },
@@ -77,25 +117,12 @@
     "walk-up-path": "^3.0.1"
   },
   "devDependencies": {
-    "@types/node": "^18.15.11",
-    "@types/tap": "^15.0.8",
-    "c8": "^7.12.0",
-    "mkdirp": "1",
+    "tshy": "^1.0.0",
+    "@types/node": "^20.6.1",
     "prettier": "^2.8.2",
-    "sync-content": "^1.0.2",
-    "tap": "^16.3.7",
-    "ts-node": "^10.9.1",
-    "typedoc": "^0.24.8",
-    "typescript": "^5.1.6"
-  },
-  "tap": {
-    "coverage": false,
-    "node-arg": [
-      "--no-warnings",
-      "--loader",
-      "ts-node/esm"
-    ],
-    "ts": false
+    "tap": "^18.0.1",
+    "typedoc": "^0.25.1",
+    "typescript": "5.2"
   },
   "funding": {
     "url": "https://github.com/sponsors/isaacs"

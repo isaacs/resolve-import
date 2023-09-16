@@ -35,9 +35,7 @@ console.log(await resolveImport('pkg', '/path/to/y.js'))
 ### Interface `ResolveImportOpts`
 
 - `conditions: string[]` The list of conditions to match on.
-  `'default'` is always accepted. Defaults to `['import',
-  'node']`. If set to `['require', 'node']`, then this is
-  equivalent to `require.resolve()`.
+  `'default'` is always accepted. Defaults to `['import', 'node']`.
 
 ### resolveImport
 
@@ -103,3 +101,49 @@ resolveAllLocalImports(
 
 Similar to `resolveAllExports`, but this resolves the entries in
 the package.json's `imports` object.
+
+### isRelativeRequire
+
+```ts
+isRelativeRequire(specifier: string): boolean
+```
+
+Simple utility function that returns true if the import or
+require specifier starts with `./` or `../` (or `.\` or `..\` on
+Windows).
+
+### getAllConditions
+
+```ts
+getAllConditions(
+  importsExports: Imports | Exports | ConditionalValue
+): string[]
+```
+
+Given an `exports` or `imports` value from a package, return the
+list of conditions that it is sensitive to.
+
+`default` is not included in the returned list, since that's
+always effectively relevant.
+
+Note that a condition being returned by this method does not mean
+that the export/import object actually has a _target_ for that
+condition, since it may map to `null`, be nested under another
+condition, etc. But it does potentially have some kind of
+conditional behavior for all the conditions returned.
+
+Ordering of returned conditions is arbitrary, and does not imply
+precedence or object shape.
+
+### resolveConditionalValue
+
+```ts
+resolveConditionalValue(
+  cond: ConditionalValue,
+  options: ResolveImportOpts): string | null
+```
+
+Given an entry from an `imports` or `exports` object, resolve the
+conditional value based on the `conditions` list in the provided
+`options` object. By default, resolves with the conditions
+`['import', 'node']`.

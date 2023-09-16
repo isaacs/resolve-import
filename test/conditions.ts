@@ -1,5 +1,5 @@
 import t from 'tap'
-import { resolveImport } from '../dist/cjs/index.js'
+import { resolveImport } from '../dist/esm/index.js'
 
 const cwd = process.cwd()
 t.formatSnapshot = (v: URL) => {
