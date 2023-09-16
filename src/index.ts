@@ -10,10 +10,10 @@
 
 import { readFile, stat } from 'fs/promises'
 import { escape, glob } from 'glob'
+import { isBuiltin } from 'module'
 import { dirname, isAbsolute, resolve, sep } from 'path'
 import { fileURLToPath, pathToFileURL } from 'url'
 import { walkUp } from 'walk-up-path'
-import { builtinSet } from './builtin-set.js'
 import {
   invalidImportSpecifier,
   invalidPackage,
