@@ -28,6 +28,14 @@ const cases: [Imports | Exports, string[][]][] = [
     { './x': { import: './x.js' }, './y': { import: './y.js' } },
     [['import']],
   ],
+  [
+    {
+      './a': './a.js',
+      './x': { import: './x.js' },
+      './y': { import: './y.js' },
+    },
+    [[], ['import']],
+  ],
 ]
 
 for (const [ie, e] of cases) {

@@ -39,15 +39,15 @@ export const getUniqueConditionSets = (
   const list = getConditionalValuesList(importsExports)
   let results: string[][] = []
   for (const [_, conditions] of list) {
-    if (!results.some(arr => arrayIsSubset(arr, conditions))) {
+    if (!results.some(arr => arrayIsEquivalent(arr, conditions))) {
       results.push([...conditions])
     }
   }
   return results
 }
 
-const arrayIsSubset = (arr: string[], sup: Set<string>) => {
-  if (arr.length > sup.size) return false
+const arrayIsEquivalent = (arr: string[], sup: Set<string>) => {
+  if (arr.length !== sup.size) return false
   for (const c of arr) {
     if (!sup.has(c)) return false
   }
