@@ -8,7 +8,10 @@
     "url": "git://github.com/isaacs/resolve-import.git"
   },
   "type": "module",
+  "main": "./dist/commonjs/index.js",
+  "types": "./dist/commonjs/index.d.ts",
   "tshy": {
+    "main": true,
     "exports": {
       "./package.json": "./package.json",
       ".": "./src/index.ts",
@@ -150,10 +153,10 @@
     "walk-up-path": "^3.0.1"
   },
   "devDependencies": {
-    "tshy": "^1.0.0",
     "@types/node": "^20.6.1",
     "prettier": "^2.8.2",
     "tap": "^18.0.1",
+    "tshy": "^1.2.2",
     "typedoc": "^0.25.1",
     "typescript": "5.2"
   },
