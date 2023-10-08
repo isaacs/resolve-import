@@ -8,15 +8,12 @@ import {
 } from './errors.js'
 import { fileExists } from './file-exists.js'
 import { findStarMatch } from './find-star-match.js'
-import {
-  ConditionalValue,
-  ResolveImportOpts,
-} from './index.js'
+import { ConditionalValue, ResolveImportOpts } from './index.js'
 import { readPkg } from './read-pkg.js'
 import { resolveConditionalValue } from './resolve-conditional-value.js'
 import { resolveDependencyExports } from './resolve-dependency-export.js'
 import { resolveExport } from './resolve-export.js'
-import {resolveImport} from './resolve-import.js'
+import { resolveImport } from './resolve-import.js'
 
 /**
  * Resolve an import like '@package/name/sub/module', where
@@ -30,7 +27,7 @@ export const resolvePackageImport = async (
   const { originalParent } = options
   const parts = url.match(/^(@[^\/]+\/[^\/]+|[^\/]+)(?:\/(.*))?$/) as
     | null
-    | [string, string, string]
+    | (RegExpMatchArray & [string, string, string])
   // impossible
   /* c8 ignore start */
   if (!parts) throw invalidImportSpecifier(url)
@@ -58,7 +55,10 @@ export const resolvePackageImport = async (
       }
     }
 
-    if (pkg.imports && url.startsWith('#')) {
+    if (url.startsWith('#')) {
+      if (!pkg.imports) {
+        throw packageImportNotDefined(url, pj, originalParent)
+      }
       const exact = pkg.imports[url]
       if (exact !== undefined) {
         const res = resolveConditionalValue(exact, options)
@@ -91,7 +91,7 @@ export const resolvePackageImport = async (
       return resolveImport(expand, pj, options)
     }
 
-    return resolveDependencyExports(url, parentPath, options)
+    break
   }
 
   return resolveDependencyExports(url, parentPath, options)

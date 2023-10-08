@@ -1,4 +1,4 @@
-import { stat } from 'fs/promises'
+import { realpath, stat } from 'fs/promises'
 import { dirname, resolve, sep } from 'path'
 import { walkUp } from 'walk-up-path'
 
@@ -21,7 +21,14 @@ export const findDepPackage = async (
     // of course node_modules// is never going to be a valid package.
     const ppath =
       pkgName === null ? nm : (!pkgName ? nm : resolve(nm, pkgName)) + sep
-    if (!(await dirExists(ppath))) continue
-    return ppath
+    if (await dirExists(ppath)) {
+      try {
+        return (await realpath(ppath)) + sep
+        // the direxists stat will avoid almost all throws that could
+        // occur here, but just in case.
+        /* c8 ignore start */
+      } catch {}
+        /* c8 ignore stop */
+    }
   }
 }

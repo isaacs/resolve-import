@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process'
 import { readdir } from 'node:fs/promises'
 import { createRequire } from 'node:module'
+import { tmpdir } from 'node:os'
 import { resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import t from 'tap'
@@ -74,7 +75,7 @@ t.test('basic run-through of all dep cases', async t => {
 })
 
 t.test('missing package fails', async t => {
-  const p = resolve('/some/path')
+  const p = t.testdir()
   const n = 'this package does not exist'
   await t.rejects(resolveImport(n, p), {
     code: 'ERR_MODULE_NOT_FOUND',
@@ -84,7 +85,7 @@ t.test('missing package fails', async t => {
 
 t.test('builtin returns string', async t => {
   t.equal(await resolveImport('fs'), 'fs')
-  const p = String(pathToFileURL(resolve('/a/b/c')))
+  const p = String(pathToFileURL(resolve(tmpdir())))
   t.equal(await resolveImport('node:url', p), 'node:url')
 })
 
@@ -96,11 +97,11 @@ t.test('absolute url returns file url of it', async t => {
   const u = pathToFileURL(p)
   const f = String(u)
   t.strictSame(await resolveImport(p), u)
-  t.strictSame(await resolveImport(p, '/x/y/z.js'), u)
+  t.strictSame(await resolveImport(p, tmpdir()), u)
   t.equal(await resolveImport(u), u)
-  t.equal(await resolveImport(u, '/x/y/z.js'), u)
+  t.equal(await resolveImport(u, tmpdir()), u)
   t.strictSame(await resolveImport(f), u)
-  t.strictSame(await resolveImport(f, '/x/y/z.js'), u)
+  t.strictSame(await resolveImport(f, tmpdir()), u)
 
   t.rejects(resolveImport(resolve(d, 'x.js')))
   t.rejects(resolveImport(pathToFileURL(resolve(d, 'x.js'))))
@@ -279,4 +280,124 @@ t.test('getAllConditions', t => {
   t.throws(() => getAllConditions({ x: 'y', './z': 'invalid' }))
 
   t.end()
+})
+
+t.test('link packages get realpathed', async t => {
+  // resolving resolving should follow links
+  const pkga = {
+    'package.json': JSON.stringify({ name: 'a', exports: './index.js' }),
+    'index.js': '',
+  }
+  const pkgb = {
+    'package.json': JSON.stringify({ name: 'b', exports: './index.js' }),
+    'index.js': '',
+  }
+  const pkgc = {
+    'package.json': JSON.stringify({ name: 'c', exports: './index.js' }),
+    'index.js': '',
+  }
+  const pkgloop = {
+    'package.json': JSON.stringify({
+      name: 'loop',
+      exports: './index.js',
+    }),
+    'index.js': '',
+  }
+  const dir = t.testdir({
+    'index.js': '',
+    node_modules: {
+      a: t.fixture('symlink', '../a'),
+      b: {
+        ...pkgb,
+        node_modules: {
+          loop: t.fixture('symlink', './loopy'),
+          loopy: t.fixture('symlink', './loop'),
+        },
+      },
+      c: t.fixture('symlink', '../c'),
+      loop: { ...pkgloop },
+    },
+    a: {
+      ...pkga,
+      b: {
+        ...pkgb,
+        node_modules: {
+          c: t.fixture('symlink', '../../c'),
+          loop: t.fixture('symlink', './loopy'),
+          loopy: t.fixture('symlink', './loop'),
+        },
+      },
+      c: { ...pkgc },
+      node_modules: {
+        b: t.fixture('symlink', '../b'),
+        c: { ...pkgc },
+        loop: t.fixture('symlink', './loopy'),
+        loopy: t.fixture('symlink', './loop'),
+      },
+    },
+    c: { ...pkgc },
+  })
+  const url = pathToFileURL(resolve(dir, 'index.js'))
+  const r = async (id: string | URL, base: string | URL = url) =>
+    String(await resolveImport(id, base))
+  const u = (u: string) => new URL(u + '/index.js', url)
+  const p = (p: string) => String(u(p))
+  t.equal(await r('a'), p('a'), 'a')
+  t.equal(await r('b'), p('node_modules/b'), 'b')
+  t.equal(await r('c'), p('c'), 'c')
+  t.equal(await r('b', await r('a')), p('a/b'), 'a->b')
+  t.equal(await r('c', await r('a')), p('a/node_modules/c'), 'a->c')
+  t.equal(await r('a', await r('b')), p('a'), 'b->a')
+  t.equal(await r('c', await r('b')), p('c'), 'b->c')
+  t.equal(await r('b', await r('c')), p('node_modules/b'), 'c->b')
+  t.equal(await r('a', await r('c')), p('a'), 'c->a')
+  t.equal(await r('c', await r('b', await r('a'))), p('a/c'), 'a->b->c')
+  t.test('url gets realpathed', async t => {
+    t.equal(
+      await r(u('a/node_modules/b/node_modules/c')),
+      p('a/c'),
+      'url gets realpathed'
+    )
+    t.equal(
+      await r(u('node_modules/a/node_modules/c')),
+      p('a/node_modules/c'),
+      'url gets realpathed'
+    )
+  })
+
+  t.test('symlink loop is not valid dep', async t => {
+    const loop = p('node_modules/loop')
+    t.equal(await r('loop'), loop)
+    t.equal(await r('loop', await r('b')), loop)
+    t.equal(await r('loop', await r('b', await r('a'))), loop)
+    t.equal(await r('loop', await r('b', await r('a'))), loop)
+  })
+})
+
+t.test('fail to resolve #import if no pj imports', async t => {
+  const dir = t.testdir({
+    'index.js': '',
+    'x.js': '',
+    'package.json': JSON.stringify({
+      imports: {
+        '#x': './x.js',
+      },
+    }),
+    x: {
+      'index.js': '',
+      'package.json': JSON.stringify({}),
+    },
+  })
+  t.equal(
+    String(await resolveImport('#x', resolve(dir, 'x.js'))),
+    String(pathToFileURL(resolve(dir, 'x.js')))
+  )
+  t.rejects(resolveImport('#x', resolve(dir, 'x/index.js')), {
+    message:
+      `Package import specifier "#x" is not defined in package ` +
+      `${resolve(dir, 'x/package.json')} imported from ${resolve(
+        dir,
+        'x/index.js'
+      )}`,
+  })
 })

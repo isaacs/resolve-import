@@ -2,9 +2,10 @@
  * Exported as `'resolve-import/resolve-import'`
  * @module
  */
+import { realpath } from 'fs/promises'
 import { isBuiltin } from 'module'
 import { isAbsolute, resolve } from 'path'
-import { pathToFileURL } from 'url'
+import { fileURLToPath, pathToFileURL } from 'url'
 import {
   moduleNotFound,
   relativeImportWithoutParentURL,
@@ -46,10 +47,11 @@ export const resolveImport = async (
     if (!(await fileExists(url))) {
       throw moduleNotFound(String(url), String(parentURL))
     }
-    return url
+    const rp = await realpath(toPath(url))
+    return rp !== fileURLToPath(url) ? pathToFileURL(rp) : url
   }
 
-  const pu = parentURL ? toFileURL(parentURL) : undefined
+  const pu = parentURL ? toFileURL(await realpath(toPath(parentURL))) : undefined
 
   if (isRelativeRequire(url)) {
     if (!pu) {
@@ -59,23 +61,25 @@ export const resolveImport = async (
     if (!(await fileExists(u))) {
       throw moduleNotFound(url, String(parentURL))
     }
-    return new URL(url, pu)
+    return pathToFileURL(await realpath(new URL(url, pu)))
   }
 
   if (isAbsolute(url)) {
     if (!(await fileExists(url))) {
       throw moduleNotFound(url, String(parentURL))
     }
-    return pathToFileURL(url)
+    return pathToFileURL(await realpath(url))
   }
 
   if (isBuiltin(String(url))) {
-    return url
+    return String(url)
   }
 
   // ok, we have to resolve it. some kind of bare dep import,
   // either a package name resolving to module or main, or a named export.
-  const parentPath: string = toPath(parentURL || resolve('x'))
+  const parentPath: string = toPath(
+    parentURL || resolve(await realpath(process.cwd()), 'x')
+  )
   const opts = {
     ...options,
     originalParent: String(options.originalParent || parentPath),

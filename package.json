@@ -155,7 +155,7 @@
   "devDependencies": {
     "@types/node": "^20.6.1",
     "prettier": "^2.8.2",
-    "tap": "^18.0.1",
+    "tap": "^18.4.3",
     "tshy": "^1.2.2",
     "typedoc": "^0.25.1",
     "typescript": "5.2"
