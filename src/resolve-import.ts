@@ -4,7 +4,7 @@
  */
 import { realpath } from 'fs/promises'
 import { isBuiltin } from 'module'
-import { isAbsolute, resolve } from 'path'
+import { basename, dirname, isAbsolute, resolve } from 'path'
 import { fileURLToPath, pathToFileURL } from 'url'
 import {
   moduleNotFound,
@@ -17,6 +17,15 @@ import { resolveDependencyExports } from './resolve-dependency-export.js'
 import { resolvePackageImport } from './resolve-package-import.js'
 import { toFileURL } from './to-file-url.js'
 import { toPath } from './to-path.js'
+
+// It's pretty common to resolve against, eg, cwd + '/x', since we might not
+// know the actual file that it's being loaded from, and want to resolve what
+// a dep WOULD be from a given path. This allows us to realpath that directory,
+// without requiring that the file exist.
+const realpathParentDir = async (path: string | URL) => {
+  path = toPath(path)
+  return resolve(await realpath(dirname(path)), basename(path))
+}
 
 /**
  * Resolve an import URL or string as if it were coming from the
@@ -51,7 +60,9 @@ export const resolveImport = async (
     return rp !== fileURLToPath(url) ? pathToFileURL(rp) : url
   }
 
-  const pu = parentURL ? toFileURL(await realpath(toPath(parentURL))) : undefined
+  const pu = parentURL
+    ? toFileURL(await realpathParentDir(parentURL))
+    : undefined
 
   if (isRelativeRequire(url)) {
     if (!pu) {

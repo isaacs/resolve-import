@@ -401,3 +401,23 @@ t.test('fail to resolve #import if no pj imports', async t => {
       )}`,
   })
 })
+
+t.test('parentURL needs a valid folder, not file', async t => {
+  const dir = t.testdir({
+    node_modules: {
+      dep: {
+        'package.json': JSON.stringify({ main: './dep.js' }),
+        'dep.js': '',
+      },
+    },
+    folder: {},
+  })
+  const expect = String(
+    pathToFileURL(resolve(dir, 'node_modules/dep/dep.js'))
+  )
+  t.equal(String(await resolveImport('dep', dir + '/x')), expect)
+  t.equal(
+    String(await resolveImport('dep', pathToFileURL(dir + '/x'))),
+    expect
+  )
+})
