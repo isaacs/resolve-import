@@ -1,10 +1,7 @@
 import t from 'tap'
 import { resolveImport } from '../dist/esm/index.js'
 
-const cwd = process.cwd()
-t.formatSnapshot = (v: URL) => {
-  return String(v).split(cwd).join('{CWD}')
-}
+t.formatSnapshot = (v: URL) => String(v)
 
 t.test('resolve import types', async t =>
   t.matchSnapshot(
