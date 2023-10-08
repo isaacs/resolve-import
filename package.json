@@ -1,6 +1,6 @@
 {
   "name": "resolve-import",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "description": "Look up the file that an `import()` statement will resolve to, possibly relative to a given parentURL",
   "author": "Isaac Z. Schlueter <i@izs.me> (https://blog.izs.me)",
   "repository": {
