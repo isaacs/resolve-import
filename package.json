@@ -146,7 +146,7 @@
     "endOfLine": "lf"
   },
   "engines": {
-    "node": ">=16"
+    "node": "16 >=16.17.0 || 18 >= 18.6.0 || >=20"
   },
   "dependencies": {
     "glob": "^10.3.3",
