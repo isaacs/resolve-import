@@ -3,13 +3,13 @@
  * @module
  */
 import { realpath } from 'fs/promises'
-import { isBuiltin } from 'module'
 import { basename, dirname, isAbsolute, resolve } from 'path'
 import { fileURLToPath, pathToFileURL } from 'url'
 import {
   moduleNotFound,
   relativeImportWithoutParentURL,
 } from './errors.js'
+import { isBuiltin } from './is-builtin.js'
 import { fileExists } from './file-exists.js'
 import { ResolveImportOpts } from './index.js'
 import { isRelativeRequire } from './is-relative-require.js'
