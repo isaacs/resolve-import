@@ -17,12 +17,11 @@ export const resolveExport = (
   exp: Exports,
   pj: string,
   from: string,
-  options: ResolveImportOpts
+  options: ResolveImportOpts,
 ): string => {
-  const s = !sub
-    ? '.'
-    : sub === '.' || sub.startsWith('./')
-    ? sub
+  const s =
+    !sub ? '.'
+    : sub === '.' || sub.startsWith('./') ? sub
     : `./${sub}`
 
   if (typeof exp === 'string' || Array.isArray(exp)) {
@@ -54,7 +53,7 @@ export const resolveExport = (
     const [key, mid] = sm
     const res = resolveConditionalValue(
       es[key] as ConditionalValue,
-      options
+      options,
     )
     if (!res) throw subpathNotExported(s, pj, from)
     return res.replace(/\*/g, mid)

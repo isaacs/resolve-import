@@ -10,7 +10,7 @@ import { ConditionalValue, ResolveImportOpts } from './index.js'
  */
 export const resolveConditionalValue = (
   exp: ConditionalValue,
-  options: ResolveImportOpts
+  options: ResolveImportOpts,
 ): string | null => {
   const { conditions = ['import', 'node'] } = options
   if (exp === null || typeof exp === 'string') return exp

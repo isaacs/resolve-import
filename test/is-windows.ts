@@ -3,7 +3,7 @@ import t from 'tap'
 t.test('not windows', async t => {
   const d = Object.getOwnPropertyDescriptor(
     process,
-    'platform'
+    'platform',
   ) as PropertyDescriptor
   t.teardown(() => {
     Object.defineProperty(process, 'platform', d)
@@ -21,7 +21,7 @@ t.test('not windows', async t => {
 t.test('yes windows', async t => {
   const d = Object.getOwnPropertyDescriptor(
     process,
-    'platform'
+    'platform',
   ) as PropertyDescriptor
   t.teardown(() => {
     Object.defineProperty(process, 'platform', d)

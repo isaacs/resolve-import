@@ -58,7 +58,7 @@ export const resolveImport = async (
    * imports.
    */
   parentURL: string | URL | undefined = undefined,
-  options: ResolveImportOpts = {}
+  options: ResolveImportOpts = {},
 ): Promise<URL | string> => {
   // already resolved, just check that it exists
   if (typeof url === 'string' && url.startsWith('file://')) {
@@ -72,9 +72,8 @@ export const resolveImport = async (
     return rp !== fileURLToPath(url) ? pathToFileURL(rp) : url
   }
 
-  const pu = parentURL
-    ? toFileURL(await realpathParentDir(parentURL))
-    : undefined
+  const pu =
+    parentURL ? toFileURL(await realpathParentDir(parentURL)) : undefined
 
   if (isRelativeRequire(url)) {
     if (!pu) {
@@ -101,7 +100,7 @@ export const resolveImport = async (
   // ok, we have to resolve it. some kind of bare dep import,
   // either a package name resolving to module or main, or a named export.
   const parentPath: string = toPath(
-    parentURL || resolve(await realpath(process.cwd()), 'x')
+    parentURL || resolve(await realpath(process.cwd()), 'x'),
   )
   const opts = {
     ...options,

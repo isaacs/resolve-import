@@ -34,7 +34,7 @@ import { Exports, Imports } from './index.js'
  * Condition ordering is arbitrary and not guaranteed to be consistent.
  */
 export const getUniqueConditionSets = (
-  importsExports: Imports | Exports
+  importsExports: Imports | Exports,
 ): string[][] => {
   const list = getConditionalValuesList(importsExports)
   let results: string[][] = []

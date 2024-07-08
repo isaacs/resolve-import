@@ -22,7 +22,7 @@ import { resolveImport } from './resolve-import.js'
 export const resolvePackageImport = async (
   url: string,
   parentPath: string,
-  options: ResolveImportOpts & { originalParent: string }
+  options: ResolveImportOpts & { originalParent: string },
 ): Promise<URL | string> => {
   const { originalParent } = options
   const parts = url.match(/^(@[^\/]+\/[^\/]+|[^\/]+)(?:\/(.*))?$/) as
@@ -47,7 +47,7 @@ export const resolvePackageImport = async (
           pkg.exports,
           pj,
           originalParent,
-          options
+          options,
         )
         const resolved = resolve(dir, subPath)
         if (await fileExists(resolved)) return pathToFileURL(resolved)

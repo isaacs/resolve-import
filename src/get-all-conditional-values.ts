@@ -34,11 +34,11 @@ import { Exports, Imports } from './index.js'
  * `resolveAllLocalImports`.
  */
 export const getAllConditionalValues = (
-  importsExports: Imports | Exports
+  importsExports: Imports | Exports,
 ): string[] => [
   ...new Set(
     getConditionalValuesList(importsExports)
       .map(([_, __, c]) => c)
-      .filter(c => !!c) as string[]
+      .filter(c => !!c) as string[],
   ),
 ]

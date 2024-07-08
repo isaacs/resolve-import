@@ -25,7 +25,7 @@ import { toPath } from './to-path.js'
  */
 export const resolveAllLocalImports = async (
   packageJsonPath: string | URL,
-  options: ResolveImportOpts = {}
+  options: ResolveImportOpts = {},
 ): Promise<Record<string, string | URL>> => {
   const pjPath = toPath(packageJsonPath)
   const pjDir = dirname(pjPath)
@@ -116,7 +116,7 @@ export const resolveAllLocalImports = async (
  */
 const getNamedImportsList = (
   pkg: Pkg,
-  options: ResolveImportOpts
+  options: ResolveImportOpts,
 ): [string, string][] => {
   const results: [string, string][] = []
   const { imports } = pkg

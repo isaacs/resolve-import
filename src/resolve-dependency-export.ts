@@ -14,7 +14,7 @@ import { resolveExport } from './resolve-export.js'
 export const resolveDependencyExports = async (
   url: string | null,
   parentPath: string,
-  options: ResolveImportOpts & { originalParent: string }
+  options: ResolveImportOpts & { originalParent: string },
 ): Promise<URL> => {
   const { originalParent } = options
   const parts = url?.match(/^(@[^\/]+\/[^\/]+|[^\/]+)(?:\/(.*))?$/)
@@ -51,7 +51,7 @@ export const resolveDependencyExports = async (
       pkg.exports,
       pj,
       originalParent,
-      options
+      options,
     )
     const resolved = resolve(ppath, subPath)
     if (await fileExists(resolved)) return pathToFileURL(resolved)

@@ -7,7 +7,7 @@ import { ConditionalValue, Exports, Imports } from './index.js'
 export type ConditionalValuesList = [
   submodulePath: string,
   conditions: Set<string>,
-  resolvedValue: string | null
+  resolvedValue: string | null,
 ][]
 
 /**
@@ -20,7 +20,7 @@ export type ConditionalValuesList = [
  * per se, they do *prevent* valid resolutions that match the same conditions.
  */
 export const getConditionalValuesList = (
-  importsExports: Imports | Exports
+  importsExports: Imports | Exports,
 ): ConditionalValuesList => {
   if (
     !!importsExports &&
@@ -36,7 +36,7 @@ export const getConditionalValuesList = (
       if (subs === undefined) {
         if (!k.startsWith('#') && k !== '.' && !k.startsWith('./')) {
           return getConditionalValuesListFromCond(
-            importsExports as ConditionalValue
+            importsExports as ConditionalValue,
           ).map(s => ['.', ...s])
         }
         subs = k.charAt(0)
@@ -50,19 +50,19 @@ export const getConditionalValuesList = (
         throw new Error(
           `invalid ${
             subs === '.' ? 'exports' : 'imports'
-          } object, all keys ` + `must start with ${subs}. Found ${k}.`
+          } object, all keys ` + `must start with ${subs}. Found ${k}.`,
         )
       }
       conditions.push(
         ...getConditionalValuesListFromCond(v).map(
-          s => [k, ...s] as [string, Set<string>, string | null]
-        )
+          s => [k, ...s] as [string, Set<string>, string | null],
+        ),
       )
     }
     return conditions
   }
   return getConditionalValuesListFromCond(
-    importsExports as ConditionalValue
+    importsExports as ConditionalValue,
   ).map(s => ['.', ...s])
 }
 
@@ -79,7 +79,7 @@ const isSubset = (maybeSub: Set<string>, sup: Set<string>) => {
 const getConditionalValuesListFromCond = (
   cond?: ConditionalValue,
   path: string[] = [], // path of conditions that got here
-  list: [Set<string>, string | null][] = []
+  list: [Set<string>, string | null][] = [],
 ): [Set<string>, string | null][] => {
   /* c8 ignore start */
   if (cond === undefined) return list

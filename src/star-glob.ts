@@ -3,7 +3,7 @@ import { resolve } from 'path'
 
 export const starGlob = async (
   star: [string, string], // actually [string,string]
-  dir: string
+  dir: string,
 ): Promise<[string, string][]> => {
   const pattern =
     escape(star[0]) +
@@ -21,7 +21,7 @@ export const starGlob = async (
   return matches.map(match => {
     const rep = match.substring(
       star[0].length,
-      match.length - star[1].length
+      match.length - star[1].length,
     )
     return [rep, resolve(dir, match)]
   })

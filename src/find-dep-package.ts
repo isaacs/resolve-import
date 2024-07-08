@@ -5,12 +5,12 @@ import { walkUp } from 'walk-up-path'
 const dirExists = async (f: string): Promise<boolean> =>
   stat(f).then(
     st => st.isDirectory(),
-    () => false
+    () => false,
   )
 
 export const findDepPackage = async (
   pkgName: string | null,
-  parentPath: string
+  parentPath: string,
 ) => {
   // starting from the dirname, try to find the nearest node_modules
   for (const dir of walkUp(dirname(parentPath))) {
@@ -28,7 +28,7 @@ export const findDepPackage = async (
         // occur here, but just in case.
         /* c8 ignore start */
       } catch {}
-        /* c8 ignore stop */
+      /* c8 ignore stop */
     }
   }
 }

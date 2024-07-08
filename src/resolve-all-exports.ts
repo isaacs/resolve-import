@@ -25,7 +25,7 @@ import { toPath } from './to-path.js'
  */
 export const resolveAllExports = async (
   packageJsonPath: string | URL,
-  options: ResolveImportOpts = {}
+  options: ResolveImportOpts = {},
 ): Promise<Record<string, string | URL>> => {
   const pjPath = toPath(packageJsonPath)
   const pjDir = dirname(pjPath)
@@ -58,7 +58,7 @@ export const resolveAllExports = async (
     if (sres.length === 2 && ssub.length === 2) {
       for (const [rep, target] of await starGlob(
         sres as [string, string],
-        pjDir
+        pjDir,
       )) {
         results[ssub[0] + rep + ssub[1]] = pathToFileURL(target)
       }

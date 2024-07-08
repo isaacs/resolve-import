@@ -7,7 +7,7 @@ t.test('not windows', async t => {
       '../dist/esm/is-windows.js': {
         isWindows: false,
       },
-    }
+    },
   )
   t.equal(isRelativeRequire('./x'), true)
   t.equal(isRelativeRequire('../x'), true)
@@ -27,7 +27,7 @@ t.test('yes windows', async t => {
       '../dist/esm/is-windows.js': {
         isWindows: true,
       },
-    }
+    },
   )
   t.equal(isRelativeRequire('./x'), true)
   t.equal(isRelativeRequire('../x'), true)

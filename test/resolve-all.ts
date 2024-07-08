@@ -14,10 +14,10 @@ t.formatSnapshot = (o: Record<string, URL | string>) => {
       Object.entries(o).map(([k, v]) => [
         k,
         String(v).split(cwd).join('{CWD}'),
-      ])
+      ]),
     ),
     null,
-    2
+    2,
   )
 }
 
@@ -25,23 +25,23 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url))
 const pj = resolve(__dirname, 'fixtures/resolve-all/package.json')
 const noExportsImports = resolve(
   __dirname,
-  'fixtures/resolve-all/no-exports-imports.json'
+  'fixtures/resolve-all/no-exports-imports.json',
 )
 const exportsNotSubpaths = resolve(
   __dirname,
-  'fixtures/resolve-all/exports-not-subpaths.json'
+  'fixtures/resolve-all/exports-not-subpaths.json',
 )
 const exportsNotSubpathsObject = resolve(
   __dirname,
-  'fixtures/resolve-all/exports-not-subpaths-object.json'
+  'fixtures/resolve-all/exports-not-subpaths-object.json',
 )
 const importsInvalid = resolve(
   __dirname,
-  'fixtures/resolve-all/imports-invalid.json'
+  'fixtures/resolve-all/imports-invalid.json',
 )
 const importsInvalidArray = resolve(
   __dirname,
-  'fixtures/resolve-all/imports-invalid-array.json'
+  'fixtures/resolve-all/imports-invalid-array.json',
 )
 
 t.test('resolveAllLocalImports', async t => {
@@ -63,19 +63,19 @@ t.test('throws on invalid package', async t => {
 t.test('no imports/exports returns no {}', async t => {
   t.strictSame(
     await resolveAllLocalImports(String(pathToFileURL(noExportsImports))),
-    {}
+    {},
   )
   t.strictSame(
     await resolveAllExports(String(pathToFileURL(noExportsImports))),
-    {}
+    {},
   )
 })
 
 t.test('if exports is only one path, return "." only', async t => {
   t.matchSnapshot(
-    await resolveAllExports(pathToFileURL(exportsNotSubpaths))
+    await resolveAllExports(pathToFileURL(exportsNotSubpaths)),
   )
   t.matchSnapshot(
-    await resolveAllExports(pathToFileURL(exportsNotSubpathsObject))
+    await resolveAllExports(pathToFileURL(exportsNotSubpathsObject)),
   )
 })

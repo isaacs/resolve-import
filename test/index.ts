@@ -15,7 +15,7 @@ const require = createRequire(import.meta.url)
 
 const fixtures = resolve(
   fileURLToPath(new URL('.', import.meta.url)),
-  'fixtures'
+  'fixtures',
 )
 const nm = resolve(fixtures, 'node_modules')
 
@@ -54,12 +54,14 @@ t.test('basic run-through of all dep cases', async t => {
       t.strictSame(
         [root, sub, missing],
         expect[c].map((s: string | [string, string]) =>
-          Array.isArray(s) &&
-          s[0] === 'ERR_MODULE_NOT_FOUND' &&
-          typeof s[1] === 'string'
-            ? [s[0], s[1].replace(/package\.json/, '')]
-            : s
-        )
+          (
+            Array.isArray(s) &&
+            s[0] === 'ERR_MODULE_NOT_FOUND' &&
+            typeof s[1] === 'string'
+          ) ?
+            [s[0], s[1].replace(/package\.json/, '')]
+          : s,
+        ),
       )
       const internal = await resolveImport(`#internal-${c}`, p)
         .then(r => String(r))
@@ -133,7 +135,7 @@ t.test('relative url resolves', async t => {
 t.test('resolve a dep from right here', async t => {
   const dep = 'tap'
   const expect = pathToFileURL(
-    resolve('node_modules/tap/dist/esm/index.js')
+    resolve('node_modules/tap/dist/esm/index.js'),
   )
   t.strictSame(await resolveImport(dep), expect)
   t.strictSame(await resolveImport(dep, import.meta.url), expect)
@@ -169,7 +171,7 @@ t.test('more custom internal imports', async t => {
       } else {
         t.strictSame(
           await resolveImport(i, p),
-          await resolveImport(expect, p)
+          await resolveImport(expect, p),
         )
       }
     })
@@ -356,12 +358,12 @@ t.test('link packages get realpathed', async t => {
     t.equal(
       await r(u('a/node_modules/b/node_modules/c')),
       p('a/c'),
-      'url gets realpathed'
+      'url gets realpathed',
     )
     t.equal(
       await r(u('node_modules/a/node_modules/c')),
       p('a/node_modules/c'),
-      'url gets realpathed'
+      'url gets realpathed',
     )
   })
 
@@ -390,14 +392,14 @@ t.test('fail to resolve #import if no pj imports', async t => {
   })
   t.equal(
     String(await resolveImport('#x', resolve(dir, 'x.js'))),
-    String(pathToFileURL(resolve(dir, 'x.js')))
+    String(pathToFileURL(resolve(dir, 'x.js'))),
   )
   t.rejects(resolveImport('#x', resolve(dir, 'x/index.js')), {
     message:
       `Package import specifier "#x" is not defined in package ` +
       `${resolve(dir, 'x/package.json')} imported from ${resolve(
         dir,
-        'x/index.js'
+        'x/index.js',
       )}`,
   })
 })
@@ -413,11 +415,11 @@ t.test('parentURL needs a valid folder, not file', async t => {
     folder: {},
   })
   const expect = String(
-    pathToFileURL(resolve(dir, 'node_modules/dep/dep.js'))
+    pathToFileURL(resolve(dir, 'node_modules/dep/dep.js')),
   )
   t.equal(String(await resolveImport('dep', dir + '/x')), expect)
   t.equal(
     String(await resolveImport('dep', pathToFileURL(dir + '/x'))),
-    expect
+    expect,
   )
 })

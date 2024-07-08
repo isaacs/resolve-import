@@ -21,7 +21,7 @@ import { ConditionalValue, Exports, Imports } from './index.js'
  * or object shape.
  */
 export const getAllConditions = (
-  importsExports: Imports | Exports
+  importsExports: Imports | Exports,
 ): string[] => {
   if (
     !!importsExports &&
@@ -37,7 +37,7 @@ export const getAllConditions = (
       if (subs === undefined) {
         if (!k.startsWith('#') && k !== '.' && !k.startsWith('./')) {
           return getAllConditionsFromCond(
-            importsExports as ConditionalValue
+            importsExports as ConditionalValue,
           )
         }
         subs = k.charAt(0)
@@ -51,7 +51,7 @@ export const getAllConditions = (
         throw new Error(
           `invalid ${
             subs === '.' ? 'exports' : 'imports'
-          } object, all keys ` + `must start with ${subs}. Found ${k}.`
+          } object, all keys ` + `must start with ${subs}. Found ${k}.`,
         )
       }
       conditions.push(...getAllConditionsFromCond(v))
