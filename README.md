@@ -153,7 +153,8 @@ resolveConditionalValue(
 Given an entry from an `imports` or `exports` object, resolve the
 conditional value based on the `conditions` list in the provided
 `options` object. By default, resolves with the conditions
-`['import', 'node']`.
+`['import', 'node']`. `'default'` is always allowed (except if you pass the
+negative condition `'!default'`).
 
 ### getAllConditionalValues
 

@@ -21,7 +21,8 @@ export interface ResolveImportOpts {
    * If set to ['require', 'node'], then this is functionally equivalent to
    * `require.resolve()`.
    *
-   * 'default' is always allowed.
+   * 'default' is always allowed (except if you pass the negative condition
+   * '!default').
    */
   conditions?: string[]
 }

@@ -12,7 +12,6 @@ export const resolveConditionalValue = (
   exp: ConditionalValue,
   options: ResolveImportOpts,
 ): string | null => {
-  const { conditions = ['import', 'node'] } = options
   if (exp === null || typeof exp === 'string') return exp
   if (Array.isArray(exp)) {
     for (const e of exp) {
@@ -21,8 +20,17 @@ export const resolveConditionalValue = (
     }
     return null
   }
+
+  const conditions = new Set(['default'])
+  for (const condition of options.conditions ?? ['import', 'node']) {
+    if (condition.startsWith('!')) {
+      conditions.delete(condition.slice(1))
+    } else {
+      conditions.add(condition)
+    }
+  }
   for (const [k, v] of Object.entries(exp)) {
-    if (conditions.includes(k) || k === 'default') {
+    if (conditions.has(k)) {
       return resolveConditionalValue(v, options)
     }
   }
