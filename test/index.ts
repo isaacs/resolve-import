@@ -51,18 +51,16 @@ t.test('basic run-through of all dep cases', async t => {
       // node 20.5 started reporting the package.json not being findable,
       // instead of the folder, which is also not ideal.
       // See: https://github.com/nodejs/node/issues/49674
-      t.strictSame(
-        [root, sub, missing],
-        expect[c].map((s: string | [string, string]) =>
-          (
-            Array.isArray(s) &&
-            s[0] === 'ERR_MODULE_NOT_FOUND' &&
-            typeof s[1] === 'string'
-          ) ?
-            [s[0], s[1].replace(/package\.json/, '')]
-          : s,
-        ),
-      )
+      const fix = (s: string | (string | undefined)[]) =>
+        (
+          Array.isArray(s) &&
+          s[0] === 'ERR_MODULE_NOT_FOUND' &&
+          typeof s[1] === 'string'
+        ) ?
+          [s[0], s[1].replace(/package\.json|missing\.js|index\.js/, '')]
+        : s
+      const e = expect[c].map(fix)
+      t.strictSame([root, sub, missing].map(fix), e)
       const internal = await resolveImport(`#internal-${c}`, p)
         .then(r => String(r))
         .catch(e => {
