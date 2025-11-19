@@ -154,11 +154,11 @@
     "walk-up-path": "^4.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.14.10",
-    "prettier": "^3.3.2",
-    "tap": "^20.0.3",
-    "tshy": "^3.0.0",
-    "typedoc": "^0.26.3"
+    "@types/node": "^24.10.1",
+    "prettier": "^3.6.2",
+    "tap": "^21.1.4",
+    "tshy": "^3.1.0",
+    "typedoc": "^0.28.14"
   },
   "funding": {
     "url": "https://github.com/sponsors/isaacs"
