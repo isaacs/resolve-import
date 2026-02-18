@@ -49,6 +49,7 @@
       "./resolve-conditional-value": "./src/resolve-conditional-value.ts",
       "./resolve-all-exports": "./src/resolve-all-exports.ts",
       "./resolve-all-local-imports": "./src/resolve-all-local-imports.ts",
+      "./get-unique-condition-sets": "./src/get-unique-condition-sets.ts",
       "./get-all-conditions": "./src/get-all-conditions.ts",
       "./get-all-conditional-values": "./src/get-all-conditional-values.ts",
       "./get-conditional-values-list": "./src/get-conditional-values-list.ts"
@@ -181,6 +182,16 @@
       "require": {
         "types": "./dist/commonjs/resolve-all-local-imports.d.ts",
         "default": "./dist/commonjs/resolve-all-local-imports.js"
+      }
+    },
+    "./get-unique-condition-sets": {
+      "import": {
+        "types": "./dist/esm/get-unique-condition-sets.d.ts",
+        "default": "./dist/esm/get-unique-condition-sets.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/get-unique-condition-sets.d.ts",
+        "default": "./dist/commonjs/get-unique-condition-sets.js"
       }
     },
     "./get-all-conditions": {

@@ -1,3 +1,7 @@
+# 2.4
+
+- export getUniqueConditionSets (tshy uses this)
+
 # 2.3
 
 - Ship minified tree-shaken submoduls for just the top level
