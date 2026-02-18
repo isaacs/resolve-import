@@ -1,3 +1,8 @@
+# 2.3
+
+- Ship minified tree-shaken submoduls for just the top level
+  `resolveImport` and `resolveImportSync` methods
+
 # 2.2
 
 - Add sync functions

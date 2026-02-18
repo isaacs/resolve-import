@@ -36,6 +36,19 @@ console.log(await resolveImport('./x.js', '/path/to/y.js'))
 console.log(await resolveImport('pkg', '/path/to/y.js'))
 ```
 
+To get very minified versions of just the top level
+`resolveImport` or `resolveImportSync` methods, load them like
+this:
+
+```ts
+// minified tree-shaken bundle, just the async version
+import { resolveImport } from 'resolve-import/resolve-import-async'
+
+// minified tree-shaken bundle, just the sync version
+import { resolveImportSync } from 'resolve-import/resolve-import-sync'
+```
+
+
 ## API
 
 These functions are all exported on the main module, as well as

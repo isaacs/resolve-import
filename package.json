@@ -24,6 +24,26 @@
           "default": "./dist/commonjs/index.min.js"
         }
       },
+      "./resolve-import-async": {
+        "import": {
+          "types": "./dist/esm/resolve-import-async.d.ts",
+          "default": "./dist/esm/resolve-import-async.min.js"
+        },
+        "require": {
+          "types": "./dist/commonjs/resolve-import-async.d.ts",
+          "default": "./dist/commonjs/resolve-import-async.min.js"
+        }
+      },
+      "./resolve-import-sync": {
+        "import": {
+          "types": "./dist/esm/resolve-import-sync.d.ts",
+          "default": "./dist/esm/resolve-import-sync.min.js"
+        },
+        "require": {
+          "types": "./dist/commonjs/resolve-import-sync.d.ts",
+          "default": "./dist/commonjs/resolve-import-sync.min.js"
+        }
+      },
       "./resolve-import": "./src/resolve-import.ts",
       "./is-relative-require": "./src/is-relative-require.ts",
       "./resolve-conditional-value": "./src/resolve-conditional-value.ts",
@@ -91,6 +111,26 @@
       "require": {
         "types": "./dist/commonjs/index.d.ts",
         "default": "./dist/commonjs/index.min.js"
+      }
+    },
+    "./resolve-import-async": {
+      "import": {
+        "types": "./dist/esm/resolve-import-async.d.ts",
+        "default": "./dist/esm/resolve-import-async.min.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/resolve-import-async.d.ts",
+        "default": "./dist/commonjs/resolve-import-async.min.js"
+      }
+    },
+    "./resolve-import-sync": {
+      "import": {
+        "types": "./dist/esm/resolve-import-sync.d.ts",
+        "default": "./dist/esm/resolve-import-sync.min.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/resolve-import-sync.d.ts",
+        "default": "./dist/commonjs/resolve-import-sync.min.js"
       }
     },
     "./resolve-import": {
