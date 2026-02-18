@@ -1,30 +1,29 @@
-import { dirname, resolve } from 'path'
-import { pathToFileURL } from 'url'
+import { dirname, resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { walkUp } from 'walk-up-path'
 import {
   invalidImportSpecifier,
   moduleNotFound,
   packageImportNotDefined,
 } from './errors.js'
-import { fileExists } from './file-exists.js'
+import { fileExistsSync } from './file-exists.js'
 import { findStarMatch } from './find-star-match.js'
 import { ConditionalValue, ResolveImportOpts } from './index.js'
-import { readPkg } from './read-pkg.js'
+import { readPkgSync } from './read-pkg.js'
 import { resolveConditionalValue } from './resolve-conditional-value.js'
-import { resolveDependencyExports } from './resolve-dependency-export.js'
+import { resolveDependencyExportsSync } from './resolve-dependency-export-sync.js'
 import { resolveExport } from './resolve-export.js'
-import { resolveImport } from './resolve-import.js'
-export * from './resolve-package-import-sync.js'
+import { resolveImportSync } from './resolve-import-sync.js'
 
 /**
  * Resolve an import like '@package/name/sub/module', where
  * './sub/module' appears in the exports of the local package.
  */
-export const resolvePackageImport = async (
+export const resolvePackageImportSync = (
   url: string,
   parentPath: string,
   options: ResolveImportOpts & { originalParent: string },
-): Promise<URL | string> => {
+): URL | string => {
   const { originalParent } = options
   const parts = url.match(/^(@[^\/]+\/[^\/]+|[^\/]+)(?:\/(.*))?$/) as
     | null
@@ -36,7 +35,7 @@ export const resolvePackageImport = async (
 
   for (const dir of walkUp(dirname(parentPath))) {
     const pj = resolve(dir, 'package.json')
-    const pkg = await readPkg(pj)
+    const pkg = readPkgSync(pj)
     if (!pkg) continue
     if (pkg.name && pkg.exports) {
       // can import from this package name if exports is defined
@@ -51,7 +50,7 @@ export const resolvePackageImport = async (
           options,
         )
         const resolved = resolve(dir, subPath)
-        if (await fileExists(resolved)) return pathToFileURL(resolved)
+        if (fileExistsSync(resolved)) return pathToFileURL(resolved)
         else throw moduleNotFound(resolved, originalParent)
       }
     }
@@ -68,9 +67,9 @@ export const resolvePackageImport = async (
         }
         // kind of weird behavior, but it's what node does
         if (res.startsWith('#')) {
-          return resolveDependencyExports(null, parentPath, options)
+          return resolveDependencyExportsSync(null, parentPath, options)
         }
-        return resolveImport(res, pj, options)
+        return resolveImportSync(res, pj, options)
       }
 
       const sm = findStarMatch(url, pkg.imports)
@@ -84,16 +83,16 @@ export const resolvePackageImport = async (
         throw packageImportNotDefined(url, pj, originalParent)
       }
       if (res.startsWith('#')) {
-        return resolveDependencyExports(null, parentPath, options)
+        return resolveDependencyExportsSync(null, parentPath, options)
       }
       const expand = res.replace(/\*/g, mid)
 
       // start over with the resolved import
-      return resolveImport(expand, pj, options)
+      return resolveImportSync(expand, pj, options)
     }
 
     break
   }
 
-  return resolveDependencyExports(url, parentPath, options)
+  return resolveDependencyExportsSync(url, parentPath, options)
 }

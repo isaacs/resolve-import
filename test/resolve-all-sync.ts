@@ -1,7 +1,10 @@
 import { resolve } from 'path'
 import t from 'tap'
 import { fileURLToPath, pathToFileURL } from 'url'
-import { resolveAllExports, resolveAllLocalImports } from '../src/index.js'
+import {
+  resolveAllExportsSync,
+  resolveAllLocalImportsSync,
+} from '../src/index.js'
 
 const cwd = pathToFileURL(process.cwd()).pathname
 
@@ -42,37 +45,35 @@ const importsInvalidArray = resolve(
 )
 
 t.test('resolveAllLocalImports', async t => {
-  t.matchSnapshot(await resolveAllLocalImports(pj))
+  t.matchSnapshot(resolveAllLocalImportsSync(pj))
 })
 
 t.test('resolveAllExports', async t => {
-  t.matchSnapshot(await resolveAllExports(pj))
+  t.matchSnapshot(resolveAllExportsSync(pj))
 })
 
 t.test('throws on invalid package', async t => {
   const __filename = fileURLToPath(import.meta.url)
-  await t.rejects(resolveAllLocalImports(__filename))
-  await t.rejects(resolveAllExports(__filename))
-  await t.rejects(resolveAllLocalImports(pathToFileURL(importsInvalid)))
-  await t.rejects(resolveAllLocalImports(importsInvalidArray))
+  t.throws(() => resolveAllLocalImportsSync(__filename))
+  t.throws(() => resolveAllExportsSync(__filename))
+  t.throws(() => resolveAllLocalImportsSync(pathToFileURL(importsInvalid)))
+  t.throws(() => resolveAllLocalImportsSync(importsInvalidArray))
 })
 
 t.test('no imports/exports returns no {}', async t => {
   t.strictSame(
-    await resolveAllLocalImports(String(pathToFileURL(noExportsImports))),
+    resolveAllLocalImportsSync(String(pathToFileURL(noExportsImports))),
     {},
   )
   t.strictSame(
-    await resolveAllExports(String(pathToFileURL(noExportsImports))),
+    resolveAllExportsSync(String(pathToFileURL(noExportsImports))),
     {},
   )
 })
 
 t.test('if exports is only one path, return "." only', async t => {
+  t.matchSnapshot(resolveAllExportsSync(pathToFileURL(exportsNotSubpaths)))
   t.matchSnapshot(
-    await resolveAllExports(pathToFileURL(exportsNotSubpaths)),
-  )
-  t.matchSnapshot(
-    await resolveAllExports(pathToFileURL(exportsNotSubpathsObject)),
+    resolveAllExportsSync(pathToFileURL(exportsNotSubpathsObject)),
   )
 })

@@ -1,23 +1,22 @@
 /**
- * Exported as `'resolve-import/resolve-import'`
+ * Exported as `'resolve-import/resolve-import-sync'`
  * @module
  */
-import { realpath } from 'fs/promises'
-import Module from 'module'
-import { basename, dirname, isAbsolute, resolve } from 'path'
-import { fileURLToPath, pathToFileURL } from 'url'
+import { realpathSync } from 'node:fs'
+import Module from 'node:module'
+import { basename, dirname, isAbsolute, resolve } from 'node:path'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import {
   moduleNotFound,
   relativeImportWithoutParentURL,
 } from './errors.js'
-import { fileExists } from './file-exists.js'
-import { ResolveImportOpts } from './index.js'
+import { fileExistsSync } from './file-exists.js'
+import type { ResolveImportOpts } from './index.js'
 import { isRelativeRequire } from './is-relative-require.js'
-import { resolveDependencyExports } from './resolve-dependency-export.js'
-import { resolvePackageImport } from './resolve-package-import.js'
+import { resolveDependencyExportsSync } from './resolve-dependency-export-sync.js'
+import { resolvePackageImportSync } from './resolve-package-import-sync.js'
 import { toFileURL } from './to-file-url.js'
 import { toPath } from './to-path.js'
-export * from './resolve-import-sync.js'
 
 // affordance for node 16 <16.17 and 18 <18.9
 /* c8 ignore start */
@@ -35,9 +34,9 @@ if (typeof Module.isBuiltin !== 'function') {
 // know the actual file that it's being loaded from, and want to resolve what
 // a dep WOULD be from a given path. This allows us to realpath that directory,
 // without requiring that the file exist.
-const realpathParentDir = async (path: string | URL) => {
+const realpathParentDir = (path: string | URL) => {
   path = toPath(path)
-  return resolve(await realpath(dirname(path)), basename(path))
+  return resolve(realpathSync(dirname(path)), basename(path))
 }
 
 /**
@@ -51,7 +50,7 @@ const realpathParentDir = async (path: string | URL) => {
  * closely matches the errors raised by Node when failing for the same
  * reason.
  */
-export const resolveImport = async (
+export const resolveImportSync = (
   /** the thing being imported */
   url: string | URL,
   /**
@@ -60,38 +59,38 @@ export const resolveImport = async (
    */
   parentURL: string | URL | undefined = undefined,
   options: ResolveImportOpts = {},
-): Promise<URL | string> => {
+): URL | string => {
   // already resolved, just check that it exists
   if (typeof url === 'string' && url.startsWith('file://')) {
     url = new URL(url)
   }
   if (typeof url === 'object') {
-    if (!(await fileExists(url))) {
+    if (!fileExistsSync(url)) {
       throw moduleNotFound(String(url), String(parentURL))
     }
-    const rp = await realpath(toPath(url))
+    const rp = realpathSync(toPath(url))
     return rp !== fileURLToPath(url) ? pathToFileURL(rp) : url
   }
 
   const pu =
-    parentURL ? toFileURL(await realpathParentDir(parentURL)) : undefined
+    parentURL ? toFileURL(realpathParentDir(parentURL)) : undefined
 
   if (isRelativeRequire(url)) {
     if (!pu) {
       throw relativeImportWithoutParentURL(url, parentURL)
     }
     const u = new URL(url, pu)
-    if (!(await fileExists(u))) {
+    if (!fileExistsSync(u)) {
       throw moduleNotFound(url, String(parentURL))
     }
-    return pathToFileURL(await realpath(new URL(url, pu)))
+    return pathToFileURL(realpathSync(new URL(url, pu)))
   }
 
   if (isAbsolute(url)) {
-    if (!(await fileExists(url))) {
+    if (!fileExistsSync(url)) {
       throw moduleNotFound(url, String(parentURL))
     }
-    return pathToFileURL(await realpath(url))
+    return pathToFileURL(realpathSync(url))
   }
 
   if (Module.isBuiltin(String(url))) {
@@ -101,15 +100,15 @@ export const resolveImport = async (
   // ok, we have to resolve it. some kind of bare dep import,
   // either a package name resolving to module or main, or a named export.
   const parentPath: string = toPath(
-    parentURL || resolve(await realpath(process.cwd()), 'x'),
+    parentURL || resolve(realpathSync(process.cwd()), 'x'),
   )
   const opts = {
     ...options,
     originalParent: String(options.originalParent || parentPath),
   }
   if (url) {
-    return resolvePackageImport(url, parentPath, opts)
+    return resolvePackageImportSync(url, parentPath, opts)
   } else {
-    return resolveDependencyExports(url, parentPath, opts)
+    return resolveDependencyExportsSync(url, parentPath, opts)
   }
 }

@@ -1,5 +1,5 @@
 import t from 'tap'
-import { resolveImport } from '../dist/esm/index.js'
+import { resolveImport } from '../src/index.js'
 
 t.formatSnapshot = (v: URL) => String(v)
 

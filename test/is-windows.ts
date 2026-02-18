@@ -14,7 +14,7 @@ t.test('not windows', async t => {
     configurable: true,
     writable: true,
   })
-  const { isWindows } = await t.mockImport('../dist/esm/is-windows.js', {})
+  const { isWindows } = await t.mockImport('../src/is-windows.js', {})
   t.equal(isWindows, false)
 })
 
@@ -32,6 +32,6 @@ t.test('yes windows', async t => {
     configurable: true,
     writable: true,
   })
-  const { isWindows } = await t.mockImport('../dist/esm/is-windows.js', {})
+  const { isWindows } = await t.mockImport('../src/is-windows.js', {})
   t.equal(isWindows, true)
 })

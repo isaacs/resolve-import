@@ -10,7 +10,7 @@ file://{CWD}/dist/esm/index.d.ts
 `
 
 exports[`test/conditions.ts > TAP > resolve require > must match snapshot 1`] = `
-file://{CWD}/dist/commonjs/index.js
+file://{CWD}/dist/commonjs/index.min.js
 `
 
 exports[`test/conditions.ts > TAP > resolve require types > must match snapshot 1`] = `

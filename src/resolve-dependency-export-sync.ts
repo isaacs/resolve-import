@@ -1,44 +1,43 @@
-import { resolve } from 'path'
-import { pathToFileURL } from 'url'
+import { resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { moduleNotFound, packageNotFound } from './errors.js'
-import { fileExists } from './file-exists.js'
-import { findDepPackage } from './find-dep-package.js'
+import { fileExistsSync } from './file-exists.js'
+import { findDepPackageSync } from './find-dep-package.js'
 import { ResolveImportOpts } from './index.js'
-import { readPkg } from './read-pkg.js'
+import { readPkgSync } from './read-pkg.js'
 import { resolveExport } from './resolve-export.js'
-export * from './resolve-dependency-export-sync.js'
 
 /**
  * Resolve a dependency like '@dep/name/sub/module' where
  * '@dep/name' is in node_modules somewhere and exports './sub/module'
  */
-export const resolveDependencyExports = async (
+export const resolveDependencyExportsSync = (
   url: string | null,
   parentPath: string,
   options: ResolveImportOpts & { originalParent: string },
-): Promise<URL> => {
+): URL => {
   const { originalParent } = options
   const parts = url?.match(/^(@[^\/]+\/[^\/]+|[^\/]+)(?:\/(.*))?$/)
   const [, pkgName, sub] =
     url === null ? [, null, ''] : parts || ['', '', '']
-  const ppath = await findDepPackage(pkgName, parentPath)
+  const ppath = findDepPackageSync(pkgName, parentPath)
   if (!ppath) {
     throw packageNotFound(pkgName, originalParent)
   }
 
   const indexjs = resolve(ppath, 'index.js')
   const pj = resolve(ppath, 'package.json')
-  const pkg = await readPkg(pj)
+  const pkg = readPkgSync(pj)
   const subpath = sub ? resolve(ppath, sub) : false
   // if not a package, then the sub can still be a direct path
   // if no sub, then resolves to index.js if available.
   if (!pkg) {
     if (!subpath) {
       // try index.js, otherwise fail
-      if (await fileExists(indexjs)) return pathToFileURL(indexjs)
+      if (fileExistsSync(indexjs)) return pathToFileURL(indexjs)
       else throw packageNotFound(ppath, originalParent)
     } else {
-      if (await fileExists(subpath)) {
+      if (fileExistsSync(subpath)) {
         return pathToFileURL(subpath)
       } else throw moduleNotFound(subpath, originalParent)
     }
@@ -55,18 +54,18 @@ export const resolveDependencyExports = async (
       options,
     )
     const resolved = resolve(ppath, subPath)
-    if (await fileExists(resolved)) return pathToFileURL(resolved)
+    if (fileExistsSync(resolved)) return pathToFileURL(resolved)
     else throw moduleNotFound(resolved, originalParent)
   } else if (subpath) {
-    if (await fileExists(subpath)) return pathToFileURL(subpath)
+    if (fileExistsSync(subpath)) return pathToFileURL(subpath)
     else throw moduleNotFound(subpath, originalParent)
   } else if (pkg.main) {
     // fall back to index.js if main is missing
     const rmain = resolve(ppath, pkg.main)
-    if (await fileExists(rmain)) return pathToFileURL(rmain)
-    else if (await fileExists(indexjs)) return pathToFileURL(indexjs)
+    if (fileExistsSync(rmain)) return pathToFileURL(rmain)
+    else if (fileExistsSync(indexjs)) return pathToFileURL(indexjs)
     else throw packageNotFound(ppath, originalParent)
-  } else if (await fileExists(indexjs)) {
+  } else if (fileExistsSync(indexjs)) {
     return pathToFileURL(indexjs)
   } else {
     throw packageNotFound(ppath, originalParent)

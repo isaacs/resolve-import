@@ -12,8 +12,14 @@ builtin module ID string for node builtins.
 import { resolveImport } from 'resolve-import'
 // or: const { resolveImport } = require('resolve-import')
 
+// sync versions provided as well
+import { resolveImportSync } from 'resolve-import'
+
 // resolving a full file URL just returns it
 console.log(await resolveImport(new URL('file:///blah/foo.js')))
+
+// same result in sync mode
+console.log(resolveImportSync(new URL('file:///blah/foo.js')))
 
 // resolving a node built in returns the string
 console.log(await resolveImport('node:fs')) // 'node:fs'
@@ -36,7 +42,10 @@ These functions are all exported on the main module, as well as
 being available on `resolve-import/{hyphen-name}`, for example:
 
 ```js
-import { resolveAllExports } from 'resolve-import/resolve-all-exports'
+import {
+  resolveAllExports,
+  resolveAllExportsSync,
+} from 'resolve-import/resolve-all-exports'
 ```
 
 ### Interface `ResolveImportOpts`
@@ -44,7 +53,7 @@ import { resolveAllExports } from 'resolve-import/resolve-all-exports'
 - `conditions: string[]` The list of conditions to match on.
   `'default'` is always accepted. Defaults to `['import', 'node']`.
 
-### resolveImport
+### resolveImport, resolveImportSync
 
 ```ts
 resolveImport(
@@ -52,6 +61,12 @@ resolveImport(
   parentURL?: string | URL,
   options?: ResolveImportOpts):
     Promise<string | URL>
+
+resolveImportSync(
+  url: string | URL,
+  parentURL?: string | URL,
+  options?: ResolveImportOpts):
+    string | URL
 ```
 
 - `url` The string or file URL object being imported.
@@ -69,13 +84,18 @@ Raises roughly the same errors that `import()` will raise if the
 lookup fails. For example, if a package is not found, if a
 subpath is not exported, etc.
 
-### resolveAllExports
+### resolveAllExports, resolveAllExportsSync
 
 ```ts
 resolveAllExports(
   packageJsonPath: string | URL,
   options: ResolveImportOpts):
     Promise<Record<string, string | URL>>
+
+resolveAllExportsSync(
+  packageJsonPath: string | URL,
+  options: ResolveImportOpts):
+    Record<string, string | URL>
 ```
 
 Given a `package.json` path or file URL, resolve all valid
@@ -97,10 +117,15 @@ Any exports that fail to load (ie, if the target is invalid, the
 file does not exist, etc.) will be omitted from the returned
 object.
 
-### resolveAllLocalImports
+### resolveAllLocalImports, resolveAllLocalImportsSync
 
 ```ts
 resolveAllLocalImports(
+  packageJsonPath: string | URL,
+  options: ResolveImportOpts):
+    Promise<Record<string, string | URL>>
+
+resolveAllLocalImportsSync(
   packageJsonPath: string | URL,
   options: ResolveImportOpts):
     Record<string, string | URL>

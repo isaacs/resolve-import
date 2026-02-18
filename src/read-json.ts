@@ -1,5 +1,18 @@
 import { readFile } from 'node:fs/promises'
-export const readJSON = async (f: string): Promise<any> =>
-  readFile(f, 'utf8')
-    .then(d => JSON.parse(d))
-    .catch(() => null)
+import { readFileSync } from 'node:fs'
+
+export const readJSON = async (f: string): Promise<unknown> => {
+  try {
+    return JSON.parse(await readFile(f, 'utf8'))
+  } catch {
+    return null
+  }
+}
+
+export const readJSONSync = (f: string): unknown => {
+  try {
+    return JSON.parse(readFileSync(f, 'utf8'))
+  } catch {
+    return null
+  }
+}

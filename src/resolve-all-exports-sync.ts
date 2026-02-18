@@ -7,11 +7,10 @@ import { pathToFileURL } from 'url'
 import { invalidPackage } from './errors.js'
 import { getNamedExportsList } from './get-named-exports-list.js'
 import { Exports, ResolveImportOpts } from './index.js'
-import { readPkg } from './read-pkg.js'
+import { readPkgSync } from './read-pkg.js'
 import { resolveExport } from './resolve-export.js'
-import { starGlob } from './star-glob.js'
+import { starGlobSync } from './star-glob.js'
 import { toPath } from './to-path.js'
-export * from './resolve-all-exports-sync.js'
 
 /**
  * Given a path or file URL to a package.json file, return an object where each
@@ -24,16 +23,16 @@ export * from './resolve-all-exports-sync.js'
  * import paths is unbounded, the returned object will contain `"./x/*"` as the
  * key, since there's no way to expand that to every possible match.
  */
-export const resolveAllExports = async (
+export const resolveAllExportsSync = (
   packageJsonPath: string | URL,
   options: ResolveImportOpts = {},
-): Promise<Record<string, string | URL>> => {
+): Record<string, string | URL> => {
   const pjPath = toPath(packageJsonPath)
   const pjDir = dirname(pjPath)
 
-  const pkg = await readPkg(pjPath)
+  const pkg = readPkgSync(pjPath)
   if (!pkg) {
-    throw invalidPackage(packageJsonPath, resolveAllExports)
+    throw invalidPackage(packageJsonPath, resolveAllExportsSync)
   }
 
   const results: Record<string, string | URL> = {}
@@ -57,7 +56,7 @@ export const resolveAllExports = async (
     const sres = res.split('*')
     const ssub = sub.split('*')
     if (sres.length === 2 && ssub.length === 2) {
-      for (const [rep, target] of await starGlob(
+      for (const [rep, target] of starGlobSync(
         sres as [string, string],
         pjDir,
       )) {

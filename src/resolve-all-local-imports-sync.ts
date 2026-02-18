@@ -1,21 +1,20 @@
 /**
- * Exported as `'resolve-import/resolve-all-local-imports'`
+ * Exported as `'resolve-import/resolve-all-local-imports-sync'`
  * @module
  */
 import { dirname, resolve } from 'path'
 import { pathToFileURL } from 'url'
 import { invalidPackage } from './errors.js'
-import { fileExists } from './file-exists.js'
-import { findDepPackage } from './find-dep-package.js'
-import { ResolveImportOpts } from './index.js'
-import { Pkg, readPkg } from './read-pkg.js'
-import { resolveAllExports } from './resolve-all-exports.js'
+import { fileExistsSync } from './file-exists.js'
+import { findDepPackageSync } from './find-dep-package.js'
+import type { ResolveImportOpts } from './index.js'
+import { Pkg, readPkgSync } from './read-pkg.js'
+import { resolveAllExportsSync } from './resolve-all-exports-sync.js'
 import { resolveConditionalValue } from './resolve-conditional-value.js'
-import { resolveImport } from './resolve-import.js'
-import { starGlob } from './star-glob.js'
+import { resolveImportSync } from './resolve-import-sync.js'
+import { starGlobSync } from './star-glob.js'
 import { toFileURL } from './to-file-url.js'
 import { toPath } from './to-path.js'
-export * from './resolve-all-local-imports-sync.js'
 
 /**
  * Given a path or file URL to a package.json file, return an object where each
@@ -24,17 +23,17 @@ export * from './resolve-all-local-imports-sync.js'
  *
  * Invalid and non-resolving imports are omitted.
  */
-export const resolveAllLocalImports = async (
+export const resolveAllLocalImportsSync = (
   packageJsonPath: string | URL,
   options: ResolveImportOpts = {},
-): Promise<Record<string, string | URL>> => {
+): Record<string, string | URL> => {
   const pjPath = toPath(packageJsonPath)
   const pjDir = dirname(pjPath)
   const pjURL = toFileURL(packageJsonPath)
 
-  const pkg = await readPkg(pjPath)
+  const pkg = readPkgSync(pjPath)
   if (!pkg) {
-    throw invalidPackage(packageJsonPath, resolveAllLocalImports)
+    throw invalidPackage(packageJsonPath, resolveAllLocalImportsSync)
   }
   const results: Record<string, URL | string> = {}
 
@@ -61,7 +60,7 @@ export const resolveAllLocalImports = async (
       // do a full resolve, because the target can be anything like
       // './foo/bar' or 'dep/blah', etc.
       try {
-        results[sub] = await resolveImport(target, pjURL)
+        results[sub] = resolveImportSync(target, pjURL)
       } catch {}
       continue
     }
@@ -69,7 +68,7 @@ export const resolveAllLocalImports = async (
     // has a star, have to glob if it's localPath, or look up exports if not
     const localPath = parts[1] === '.'
     if (localPath) {
-      for (const [rep, target] of await starGlob(starget, pjDir)) {
+      for (const [rep, target] of starGlobSync(starget, pjDir)) {
         results[ssub[0] + rep + ssub[1]] = pathToFileURL(target)
       }
       continue
@@ -79,15 +78,15 @@ export const resolveAllLocalImports = async (
     const dep = !localPath && !localName ? parts[1] : null
 
     // if we can't find the package, it's not valid.
-    const ppath = dep ? await findDepPackage(dep, pjDir) : pjDir
+    const ppath = dep ? findDepPackageSync(dep, pjDir) : pjDir
     if (!ppath) continue
 
     const pj = resolve(ppath, 'package.json')
-    if (!(await fileExists(pj))) {
+    if (!fileExistsSync(pj)) {
       continue
     }
 
-    const allExports = await resolveAllExports(pj)
+    const allExports = resolveAllExportsSync(pj)
     for (const [k, v] of Object.entries(allExports)) {
       if (k === '.' || k === './') continue
       const i = dep + k.substring(1)
@@ -100,7 +99,7 @@ export const resolveAllLocalImports = async (
         // from the package itself, and it gets resolved at that point.
         /* c8 ignore start */
         try {
-          results[s] = await resolveImport(v, pjURL)
+          results[s] = resolveImportSync(v, pjURL)
         } catch {}
         /* c8 ignore stop */
       }

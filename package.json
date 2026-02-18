@@ -8,8 +8,6 @@
     "url": "git://github.com/isaacs/resolve-import.git"
   },
   "type": "module",
-  "main": "./dist/commonjs/index.min.js",
-  "types": "./dist/commonjs/index.d.ts",
   "tshy": {
     "compiler": "tsgo",
     "selfLink": false,
@@ -36,6 +34,44 @@
       "./get-conditional-values-list": "./src/get-conditional-values-list.ts"
     }
   },
+  "files": [
+    "dist"
+  ],
+  "license": "BlueOak-1.0.0",
+  "scripts": {
+    "preversion": "npm test",
+    "postversion": "npm publish",
+    "prepublishOnly": "git push origin --follow-tags",
+    "prepare": "tshy",
+    "postprepare": "bash scripts/build.sh",
+    "pretest": "npm run prepare",
+    "presnap": "npm run prepare",
+    "test": "tap",
+    "snap": "tap",
+    "format": "prettier --write . --loglevel warn",
+    "typedoc": "typedoc"
+  },
+  "engines": {
+    "node": "20 || >=22"
+  },
+  "dependencies": {
+    "glob": "^13.0.0",
+    "walk-up-path": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.3",
+    "esbuild": "^0.27.3",
+    "prettier": "^3.6.2",
+    "tap": "^21.5.1",
+    "tshy": "^3.3.1",
+    "typedoc": "^0.28.17"
+  },
+  "funding": {
+    "url": "https://github.com/sponsors/isaacs"
+  },
+  "main": "./dist/commonjs/index.min.js",
+  "types": "./dist/commonjs/index.d.ts",
+  "module": "./dist/esm/index.min.js",
   "exports": {
     "./package.json": "./package.json",
     "./raw": {
@@ -138,53 +174,5 @@
         "default": "./dist/commonjs/get-conditional-values-list.js"
       }
     }
-  },
-  "files": [
-    "dist"
-  ],
-  "license": "BlueOak-1.0.0",
-  "scripts": {
-    "preversion": "npm test",
-    "postversion": "npm publish",
-    "prepublishOnly": "git push origin --follow-tags",
-    "prepare": "tshy",
-    "postprepare": "bash scripts/build.sh",
-    "pretest": "npm run prepare",
-    "presnap": "npm run prepare",
-    "test": "tap",
-    "snap": "tap",
-    "format": "prettier --write . --loglevel warn",
-    "typedoc": "typedoc"
-  },
-  "prettier": {
-    "experimentalTernaries": true,
-    "semi": false,
-    "printWidth": 75,
-    "tabWidth": 2,
-    "useTabs": false,
-    "singleQuote": true,
-    "jsxSingleQuote": false,
-    "bracketSameLine": true,
-    "arrowParens": "avoid",
-    "endOfLine": "lf"
-  },
-  "engines": {
-    "node": "20 || >=22"
-  },
-  "dependencies": {
-    "glob": "^13.0.0",
-    "walk-up-path": "^4.0.0"
-  },
-  "devDependencies": {
-    "@types/node": "^24.10.1",
-    "esbuild": "^0.27.3",
-    "prettier": "^3.6.2",
-    "tap": "^21.1.4",
-    "tshy": "^3.3.1",
-    "typedoc": "^0.28.14"
-  },
-  "funding": {
-    "url": "https://github.com/sponsors/isaacs"
-  },
-  "module": "./dist/esm/index.min.js"
+  }
 }

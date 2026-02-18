@@ -1,5 +1,5 @@
 import { Exports, Imports } from './index.js'
-import { readJSON } from './read-json.js'
+import { readJSON, readJSONSync } from './read-json.js'
 
 export type Pkg = {
   name?: string
@@ -30,7 +30,10 @@ const isPkg = (o: any): o is Pkg =>
   (typeof o.exports === 'undefined' || isExports(o.exports)) &&
   (typeof o.imports === 'undefined' || isImports(o.imports))
 
-export const readPkg = async (f: string): Promise<Pkg | null> => {
-  const pj = await readJSON(f)
-  return isPkg(pj) ? pj : null
-}
+const ifPkg = (p: unknown): Pkg | null => (isPkg(p) ? p : null)
+
+export const readPkg = async (f: string): Promise<Pkg | null> =>
+  ifPkg(await readJSON(f))
+
+export const readPkgSync = (f: string): Pkg | null =>
+  ifPkg(readJSONSync(f))

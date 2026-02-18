@@ -2,9 +2,9 @@ import t from 'tap'
 
 t.test('not windows', async t => {
   const { isRelativeRequire } = await t.mockImport(
-    '../dist/esm/is-relative-require.js',
+    '../src/is-relative-require.js',
     {
-      '../dist/esm/is-windows.js': {
+      '../src/is-windows.js': {
         isWindows: false,
       },
     },
@@ -22,9 +22,9 @@ t.test('not windows', async t => {
 
 t.test('yes windows', async t => {
   const { isRelativeRequire } = await t.mockImport(
-    '../dist/esm/is-relative-require.js',
+    '../src/is-relative-require.js',
     {
-      '../dist/esm/is-windows.js': {
+      '../src/is-windows.js': {
         isWindows: true,
       },
     },

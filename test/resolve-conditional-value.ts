@@ -1,5 +1,5 @@
 import t from 'tap'
-import { resolveConditionalValue } from '../dist/esm/index.js'
+import { resolveConditionalValue } from '../src/index.js'
 
 t.test('without conditions', t => {
   t.equal(resolveConditionalValue(null, {}), null)
