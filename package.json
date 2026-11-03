@@ -75,7 +75,7 @@
     "node": "20 || >=22"
   },
   "dependencies": {
-    "glob": "^13.0.0",
+    "glob": "^14.0.3",
     "walk-up-path": "^4.0.0"
   },
   "devDependencies": {
