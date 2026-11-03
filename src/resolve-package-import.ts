@@ -8,7 +8,7 @@ import {
 } from './errors.js'
 import { fileExists } from './file-exists.js'
 import { findStarMatch } from './find-star-match.js'
-import { ConditionalValue, ResolveImportOpts } from './index.js'
+import type { ConditionalValue, ResolveImportOpts } from './index.js'
 import { readPkg } from './read-pkg.js'
 import { resolveConditionalValue } from './resolve-conditional-value.js'
 import { resolveDependencyExports } from './resolve-dependency-export.js'
@@ -26,9 +26,8 @@ export const resolvePackageImport = async (
   options: ResolveImportOpts & { originalParent: string },
 ): Promise<URL | string> => {
   const { originalParent } = options
-  const parts = url.match(/^(@[^\/]+\/[^\/]+|[^\/]+)(?:\/(.*))?$/) as
-    | null
-    | (RegExpMatchArray & [string, string, string])
+  const parts = url.match(/^(@[^/]+\/[^/]+|[^/]+)(?:\/(.*))?$/) as
+    null | (RegExpMatchArray & [string, string, string])
   // impossible
   /* c8 ignore start */
   if (!parts) throw invalidImportSpecifier(url)

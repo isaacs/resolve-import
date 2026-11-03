@@ -2,7 +2,7 @@
  * Exported as `'resolve-import/get-all-conditions'`
  * @module
  */
-import { ConditionalValue, Exports, Imports } from './index.js'
+import type { ConditionalValue, Exports, Imports } from './index.js'
 
 /**
  * Given an `exports` or `imports` value from a package, return the list of

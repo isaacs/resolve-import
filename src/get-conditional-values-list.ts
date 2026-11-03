@@ -2,7 +2,7 @@
  * Exported as `'resolve-import/get-conditional-values-list'`
  * @module
  */
-import { ConditionalValue, Exports, Imports } from './index.js'
+import type { ConditionalValue, Exports, Imports } from './index.js'
 
 export type ConditionalValuesList = [
   submodulePath: string,

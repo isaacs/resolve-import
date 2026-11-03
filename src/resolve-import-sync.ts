@@ -57,7 +57,7 @@ export const resolveImportSync = (
    * the place the import() would be coming from. Required for relative
    * imports.
    */
-  parentURL: string | URL | undefined = undefined,
+  parentURL?: string | URL | undefined,
   options: ResolveImportOpts = {},
 ): URL | string => {
   // already resolved, just check that it exists
@@ -106,9 +106,7 @@ export const resolveImportSync = (
     ...options,
     originalParent: String(options.originalParent || parentPath),
   }
-  if (url) {
-    return resolvePackageImportSync(url, parentPath, opts)
-  } else {
-    return resolveDependencyExportsSync(url, parentPath, opts)
-  }
+  return url ?
+      resolvePackageImportSync(url, parentPath, opts)
+    : resolveDependencyExportsSync(url, parentPath, opts)
 }

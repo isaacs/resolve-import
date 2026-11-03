@@ -5,7 +5,7 @@
  */
 export const findStarMatch = (
   s: string,
-  obj: Record<string, any>,
+  obj: Record<string, unknown>,
 ): [string, string] | null => {
   // longest pattern matches take priority
   const patterns = Object.keys(obj)

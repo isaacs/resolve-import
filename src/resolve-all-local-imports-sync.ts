@@ -8,7 +8,8 @@ import { invalidPackage } from './errors.js'
 import { fileExistsSync } from './file-exists.js'
 import { findDepPackageSync } from './find-dep-package.js'
 import type { ResolveImportOpts } from './index.js'
-import { Pkg, readPkgSync } from './read-pkg.js'
+import type { Pkg } from './read-pkg.js'
+import { readPkgSync } from './read-pkg.js'
 import { resolveAllExportsSync } from './resolve-all-exports-sync.js'
 import { resolveConditionalValue } from './resolve-conditional-value.js'
 import { resolveImportSync } from './resolve-import-sync.js'
@@ -42,7 +43,7 @@ export const resolveAllLocalImportsSync = (
     // if it's another package, then look up that package
     // if it's another package with a *, then look up all exports
     // of that package, and filter by the matches.
-    const parts = target.match(/^(@[^\/]+\/[^\/]+|[^\/]+)/)
+    const parts = target.match(/^(@[^/]+\/[^/]+|[^/]+)/)
     // make internal package named modules consistently `./`
     const name = pkg.name
 

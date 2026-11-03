@@ -3,7 +3,7 @@
  * @module
  */
 import { getConditionalValuesList } from './get-conditional-values-list.js'
-import { Exports, Imports } from './index.js'
+import type { Exports, Imports } from './index.js'
 
 /**
  * Given an `exports` or `imports` value from a package, return the list of all

@@ -8,7 +8,7 @@ import {
 } from './errors.js'
 import { fileExistsSync } from './file-exists.js'
 import { findStarMatch } from './find-star-match.js'
-import { ConditionalValue, ResolveImportOpts } from './index.js'
+import type { ConditionalValue, ResolveImportOpts } from './index.js'
 import { readPkgSync } from './read-pkg.js'
 import { resolveConditionalValue } from './resolve-conditional-value.js'
 import { resolveDependencyExportsSync } from './resolve-dependency-export-sync.js'
@@ -25,9 +25,8 @@ export const resolvePackageImportSync = (
   options: ResolveImportOpts & { originalParent: string },
 ): URL | string => {
   const { originalParent } = options
-  const parts = url.match(/^(@[^\/]+\/[^\/]+|[^\/]+)(?:\/(.*))?$/) as
-    | null
-    | (RegExpMatchArray & [string, string, string])
+  const parts = url.match(/^(@[^/]+\/[^/]+|[^/]+)(?:\/(.*))?$/) as
+    null | (RegExpMatchArray & [string, string, string])
   // impossible
   /* c8 ignore start */
   if (!parts) throw invalidImportSpecifier(url)

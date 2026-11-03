@@ -1,4 +1,4 @@
-import { Exports, ExportsSubpaths } from './index.js'
+import type { Exports, ExportsSubpaths } from './index.js'
 /**
  * Get the condition-resolved targets of all exports
  *

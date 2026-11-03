@@ -7,8 +7,9 @@ import { pathToFileURL } from 'url'
 import { invalidPackage } from './errors.js'
 import { fileExists } from './file-exists.js'
 import { findDepPackage } from './find-dep-package.js'
-import { ResolveImportOpts } from './index.js'
-import { Pkg, readPkg } from './read-pkg.js'
+import type { ResolveImportOpts } from './index.js'
+import type { Pkg } from './read-pkg.js'
+import { readPkg } from './read-pkg.js'
 import { resolveAllExports } from './resolve-all-exports.js'
 import { resolveConditionalValue } from './resolve-conditional-value.js'
 import { resolveImport } from './resolve-import.js'
@@ -43,7 +44,7 @@ export const resolveAllLocalImports = async (
     // if it's another package, then look up that package
     // if it's another package with a *, then look up all exports
     // of that package, and filter by the matches.
-    const parts = target.match(/^(@[^\/]+\/[^\/]+|[^\/]+)/)
+    const parts = target.match(/^(@[^/]+\/[^/]+|[^/]+)/)
     // make internal package named modules consistently `./`
     const name = pkg.name
 

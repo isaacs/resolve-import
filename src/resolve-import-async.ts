@@ -11,7 +11,7 @@ import {
   relativeImportWithoutParentURL,
 } from './errors.js'
 import { fileExists } from './file-exists.js'
-import { ResolveImportOpts } from './index.js'
+import type { ResolveImportOpts } from './index.js'
 import { isRelativeRequire } from './is-relative-require.js'
 import { resolveDependencyExports } from './resolve-dependency-export.js'
 import { resolvePackageImport } from './resolve-package-import.js'
@@ -58,7 +58,7 @@ export const resolveImport = async (
    * the place the import() would be coming from. Required for relative
    * imports.
    */
-  parentURL: string | URL | undefined = undefined,
+  parentURL?: string | URL | undefined,
   options: ResolveImportOpts = {},
 ): Promise<URL | string> => {
   // already resolved, just check that it exists
@@ -107,9 +107,7 @@ export const resolveImport = async (
     ...options,
     originalParent: String(options.originalParent || parentPath),
   }
-  if (url) {
-    return resolvePackageImport(url, parentPath, opts)
-  } else {
-    return resolveDependencyExports(url, parentPath, opts)
-  }
+  return url ?
+      resolvePackageImport(url, parentPath, opts)
+    : resolveDependencyExports(url, parentPath, opts)
 }

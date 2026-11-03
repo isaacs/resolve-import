@@ -12,7 +12,7 @@ import { resolveImport } from './resolve-import.js'
 
 export const invalidImportSpecifier = (
   url: string,
-  caller: (...a: any[]) => any = resolveImport,
+  caller: Function = resolveImport,
 ) => {
   const er = new Error('invalid import() specifier: ' + url)
   Error.captureStackTrace(er, caller)
@@ -21,7 +21,7 @@ export const invalidImportSpecifier = (
 
 export const invalidPackage = (
   pj: string | URL,
-  caller: (...a: any[]) => any = resolveImport,
+  caller: Function = resolveImport,
 ) => {
   const er = new Error(`Not a valid package: ${pj}`)
   Error.captureStackTrace(er, caller)
@@ -30,8 +30,8 @@ export const invalidPackage = (
 
 export const relativeImportWithoutParentURL = (
   url: string,
-  parentURL: any,
-  caller: (...a: any[]) => any = resolveImport,
+  parentURL: unknown,
+  caller: Function = resolveImport,
 ) => {
   const er = Object.assign(
     new Error('relative import without parentURL'),
@@ -48,7 +48,7 @@ export const subpathNotExported = (
   sub: string,
   pj: string,
   from: string,
-  caller: (...a: any[]) => any = resolveImport,
+  caller: Function = resolveImport,
 ) => {
   const p =
     sub === '.' ?
@@ -67,7 +67,7 @@ export const subpathNotExported = (
 export const packageNotFound = (
   path: string | null,
   from: string,
-  caller: (...a: any[]) => any = resolveImport,
+  caller: Function = resolveImport,
 ) => {
   const er = Object.assign(
     new Error(`Cannot find package '${path}' imported from ${from}`),
@@ -82,7 +82,7 @@ export const packageNotFound = (
 export const moduleNotFound = (
   path: string,
   from: string,
-  caller: (...a: any[]) => any = resolveImport,
+  caller: Function = resolveImport,
 ) => {
   const er = Object.assign(
     new Error(`Cannot find module '${path}' imported from ${from}`),
@@ -98,7 +98,7 @@ export const packageImportNotDefined = (
   path: string,
   pj: string,
   from: string,
-  caller: (...a: any[]) => any = resolveImport,
+  caller: Function = resolveImport,
 ) => {
   const er = Object.assign(
     new Error(

@@ -3,7 +3,7 @@ import { pathToFileURL } from 'url'
 import { moduleNotFound, packageNotFound } from './errors.js'
 import { fileExists } from './file-exists.js'
 import { findDepPackage } from './find-dep-package.js'
-import { ResolveImportOpts } from './index.js'
+import type { ResolveImportOpts } from './index.js'
 import { readPkg } from './read-pkg.js'
 import { resolveExport } from './resolve-export.js'
 export * from './resolve-dependency-export-sync.js'
@@ -18,9 +18,9 @@ export const resolveDependencyExports = async (
   options: ResolveImportOpts & { originalParent: string },
 ): Promise<URL> => {
   const { originalParent } = options
-  const parts = url?.match(/^(@[^\/]+\/[^\/]+|[^\/]+)(?:\/(.*))?$/)
-  const [, pkgName, sub] =
-    url === null ? [, null, ''] : parts || ['', '', '']
+  const parts = url?.match(/^(@[^/]+\/[^/]+|[^/]+)(?:\/(.*))?$/)
+  const [_, pkgName, sub] =
+    url === null ? [undefined, null, ''] : parts || ['', '', '']
   const ppath = await findDepPackage(pkgName, parentPath)
   if (!ppath) {
     throw packageNotFound(pkgName, originalParent)

@@ -2,7 +2,7 @@
  * Exported as `'resolve-import/resolve-conditional-value'`
  * @module
  */
-import { ConditionalValue, ResolveImportOpts } from './index.js'
+import type { ConditionalValue, ResolveImportOpts } from './index.js'
 
 /**
  * find the first match for string, import, node, or default

@@ -1,6 +1,6 @@
 import t from 'tap'
 import { getUniqueConditionSets } from '../src/get-unique-condition-sets.js'
-import { Exports, Imports } from '../src/index.js'
+import type { Exports, Imports } from '../src/index.js'
 
 const cases: [Imports | Exports, string[][]][] = [
   [{ import: { node: 'x' }, node: { import: 'y' } }, [['import', 'node']]],

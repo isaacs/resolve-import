@@ -1,6 +1,6 @@
 import { subpathNotExported } from './errors.js'
 import { findStarMatch } from './find-star-match.js'
-import {
+import type {
   ConditionalValue,
   Exports,
   ExportsSubpaths,

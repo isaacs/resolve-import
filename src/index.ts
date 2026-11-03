@@ -35,10 +35,7 @@ export type ConditionalValueObject = {
   [k: string]: ConditionalValue
 }
 export type ConditionalValue =
-  | null
-  | string
-  | ConditionalValueObject
-  | ConditionalValue[]
+  null | string | ConditionalValueObject | ConditionalValue[]
 
 export type ExportsSubpaths = {
   [path: string]: ConditionalValue

@@ -48,7 +48,6 @@ import { resolveImport } from 'resolve-import/resolve-import-async'
 import { resolveImportSync } from 'resolve-import/resolve-import-sync'
 ```
 
-
 ## API
 
 These functions are all exported on the main module, as well as

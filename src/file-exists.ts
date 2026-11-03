@@ -8,7 +8,7 @@ const toPath = (p: string | URL) =>
 export const fileExists = async (f: string | URL): Promise<boolean> => {
   try {
     return (await stat(toPath(f))).isFile()
-  } catch (er) {
+  } catch {
     return false
   }
 }

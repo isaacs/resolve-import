@@ -1,5 +1,5 @@
 import { getConditionalValuesList } from './get-conditional-values-list.js'
-import { Exports, Imports } from './index.js'
+import type { Exports, Imports } from './index.js'
 
 /**
  * Get the minimal set of conditions that can potentially produce different

@@ -2,7 +2,7 @@ import t from 'tap'
 
 import { getAllConditionalValues } from '../src/get-all-conditional-values.js'
 import { getConditionalValuesList } from '../src/get-conditional-values-list.js'
-import { Exports, Imports } from '../src/index.js'
+import type { Exports, Imports } from '../src/index.js'
 
 t.test('valid values', t => {
   const cases: [Imports | Exports, string[]][] = [

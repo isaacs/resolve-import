@@ -5,12 +5,8 @@ import { tmpdir } from 'node:os'
 import { resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import t from 'tap'
-import {
-  Exports,
-  getAllConditions,
-  Imports,
-  resolveImport,
-} from '../src/index.js'
+import type { Exports, Imports } from '../src/index.js'
+import { getAllConditions, resolveImport } from '../src/index.js'
 const require = createRequire(import.meta.url)
 
 const fixtures = resolve(
